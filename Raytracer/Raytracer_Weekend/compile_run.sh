@@ -1,3 +1,1 @@
-make
-
-./main > image.ppm
+make && ./main > image.ppm
