@@ -1,29 +1,19 @@
-#include <string>
-#include <iostream>
+#include "camera.hpp"
+#include "constants.hpp"
 
-#include "../include/vec3.hpp"
-#include "../include/camera.hpp"
+int main(int argc, char *argv[]) {
 
-#define DEFAULT_X = 768
-#define DEFAULT_Y = 432
-
-
-
-int main(int argc, char* argv[]) {
-
-    // declare camera
     camera cam;
 
-    for (int i = 1; i < argc; i++) {
-        std::cout << "Arg[" << i << "]: " << argv[i] << std::endl;
+    cam.img_wd = 768;
+    cam.aspect = 4.0/3.0;
 
-        std::string arg = argv[i];
+    hittable_list world;
 
-        if (arg == "option1") {
-            // fill these out for camera options
-        }
-    }
+    world.add(make_shared<sphere>(vec3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(vec3(0, -100.5, -1), 100));
 
+    cam.render(world);
 
     return 0;
 }
