@@ -1,6 +1,6 @@
 #include "shapes.hpp"
 
-bool sphere::hit(const ray &r, double ray_min, double ray_max, hit_record &rec) const {
+bool sphere::hit(const ray &r, interval inter, hit_record &rec) const {
 
     vec3 oc = center - r.origin();
     auto a = r.direction().len_sqrd();
@@ -14,9 +14,9 @@ bool sphere::hit(const ray &r, double ray_min, double ray_max, hit_record &rec) 
 
     auto rt = (h - std::sqrt(disc)) / a;
 
-    if (rt <= ray_min || ray_max <= rt) {
+    if (!inter.surrounds(rt)) {
         rt = (h + std::sqrt(disc)) / a;
-        if (rt <= ray_min || ray_max <= rt) {
+        if (!inter.surrounds(rt)) {
             return false;
         }
     }

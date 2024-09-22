@@ -17,7 +17,7 @@ class sphere : public shapes {
     public:
         sphere(const vec3 &center, double rad) : center(center), rad(std::fmax(0, rad)) {}
 
-        bool hit(const ray &r, double ray_min, double ray_max, hit_record &rec) const override;
+        bool hit(const ray &r, interval inter, hit_record &rec) const override;
 
     private:
         vec3 center;

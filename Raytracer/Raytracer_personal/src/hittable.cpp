@@ -11,13 +11,13 @@ hittable_list::hittable_list(vector<shared_ptr<hittable>> n_objs) {
     }
 }
 
-bool hittable_list::hit(const ray &r, double ray_min, double ray_max, hit_record &rec) const {
+bool hittable_list::hit(const ray &r, interval inter, hit_record &rec) const {
     hit_record temp;
     bool hits = false;
-    auto closest_hit = ray_max;
+    auto closest_hit = inter.max;
 
     for (const auto &obj : objs) {
-        if (obj->hit(r, ray_min, closest_hit, temp)) {
+        if (obj->hit(r, interval(inter.min, closest_hit), temp)) {
             hits = true;
             closest_hit = temp.t;
             rec = temp;

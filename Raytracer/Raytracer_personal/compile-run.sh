@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # compiles raytracer
+echo "Compiling Raytracer"
 make
 
 # runs raytracer saving output to img.ppm 

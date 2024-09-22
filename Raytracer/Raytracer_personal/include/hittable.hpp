@@ -6,6 +6,7 @@
 
 #include "vec3.hpp"
 #include "ray.hpp"
+#include "interval.hpp"
 
 using std::make_shared;
 using std::shared_ptr;
@@ -25,7 +26,7 @@ class hittable {
     public:
         virtual ~hittable() = default;
 
-        virtual bool hit(const ray &r, double ray_min, double ray_max, hit_record &rec) const = 0;
+        virtual bool hit(const ray &r, interval inter, hit_record &rec) const = 0;
 };
 
 class hittable_list : public hittable {
@@ -40,7 +41,7 @@ class hittable_list : public hittable {
 
         void add(shared_ptr<hittable> obj) { objs.push_back(obj); }
 
-        bool hit(const ray &r, double ray_min, double ray_max, hit_record &rec) const override;
+        bool hit(const ray &r, interval inter, hit_record &rec) const override;
 };  
 
 #endif

@@ -28,6 +28,7 @@ inline double deg_to_rad(double degrees) {
 
 // common use src/header files
 #include "color.hpp"
+#include "interval.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
 #include "shapes.hpp"
