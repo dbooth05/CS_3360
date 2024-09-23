@@ -34,8 +34,8 @@ void camera::init() {
     center = lk_from;
 
     // viewport dims
-    auto focal_len = 1.0;
-    auto vp_ht = 2.0 * std::tan(deg_to_rad(fov) / 2) * focus_dist;
+    auto focal_len = (lk_from - lk_at).len();
+    auto vp_ht = 2.0 * std::tan(deg_to_rad(fov) / 2) * focal_len;
     auto vp_wd = vp_ht * (double(img_wd) / img_ht);
     cam_center = vec3(0, 0, 0);
 

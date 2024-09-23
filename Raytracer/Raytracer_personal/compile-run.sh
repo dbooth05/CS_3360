@@ -1,13 +1,11 @@
-#!/bin/bash
-
-set -e
+# set -e
 
 # compiles raytracer
 echo "Compiling Raytracer"
 make
 
 # runs raytracer saving output to img.ppm 
-./raytracer > img.ppm
+./raytracer >> img.ppm
 
 # open img.ppm to view
 gimp img.ppm > /dev/null

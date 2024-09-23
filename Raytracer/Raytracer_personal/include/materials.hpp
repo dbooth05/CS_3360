@@ -18,17 +18,7 @@ class lamber : public material {
     public:
         lamber(const color &albedo) : albedo(albedo) {}
 
-        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override {
-            auto scatter_dir = rec.norm + random_unit_vector();
-
-            if (scatter_dir.near_zero()) {
-                scatter_dir = rec.norm;
-            }
-
-            scattered = ray(rec.p, scatter_dir);
-            atten = albedo;
-            return true;
-        }
+        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override;
 
     private:
         color albedo;
@@ -38,16 +28,23 @@ class metal : public material {
     public:
         metal(const color &albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
-        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override {
-            vec3 reflected = unit_vector(reflect(r.direction(), rec.norm)) + (fuzz * random_unit_vector());
-            scattered = ray(rec.p, reflected);
-            atten = albedo;
-            return dot(scattered.direction(), rec.norm) > 0;
-        }
+        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override;
 
     private:
         color albedo;
         double fuzz;
+};
+
+class dialectric : public material {
+    public:
+        dialectric(double refrac_idx) : refrac_idx(refrac_idx) {};
+
+        bool scatter(const ray&r, const hit_record &rec, color &atten, ray &scattered) const override;
+
+    private:
+        double refrac_idx;
+
+        static double reflectance(double cos, double ref_idx);
 };
 
 #endif
