@@ -26,6 +26,8 @@ bool sphere::hit(const ray &r, interval inter, hit_record &rec) const {
     vec3 out = (rec.p - center) / rad;
     rec.set_facing(r, out);
 
+    rec.mat = mat;
+
     return true;
 
 }

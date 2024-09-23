@@ -5,23 +5,16 @@
 #include "vec3.hpp"
 #include "constants.hpp"
 
-class shapes : public hittable {
+class sphere : public hittable {
     public:
-        // default constructor: should do nothing
-        shapes() {}
-    private:
-        vec3 center_pos;
-};
-
-class sphere : public shapes {
-    public:
-        sphere(const vec3 &center, double rad) : center(center), rad(std::fmax(0, rad)) {}
+        sphere(const vec3 &center, double rad, shared_ptr<material> mat) : center(center), rad(std::fmax(0, rad)), mat(mat) {}
 
         bool hit(const ray &r, interval inter, hit_record &rec) const override;
 
     private:
         vec3 center;
         double rad;
+        shared_ptr<material> mat;
 };
 
 #endif

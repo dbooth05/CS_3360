@@ -63,3 +63,7 @@ vec3 random_on_hemisphere(const vec3 &norm) {
         return -unit_sphere;
     }
 }
+
+vec3 reflect(const vec3 &v, const vec3 &n) {
+    return v - 2 * dot(v, n) * n;
+}

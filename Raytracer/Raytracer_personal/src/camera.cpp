@@ -67,9 +67,14 @@ color camera::ray_color(const ray &r, int depth, const hittable &world) {
     if (depth <= 0) { return color(0, 0, 0); }
 
     hit_record rec;
+
     if (world.hit(r, interval(0.001, inf), rec)) {
-        vec3 dir = rec.norm + random_unit_vector();
-        return 0.1 * ray_color(ray(rec.p, dir), depth - 1, world);
+        ray scattered;
+        color atten;
+        if (rec.mat->scatter(r, rec, atten, scattered)) {
+            return atten * ray_color(scattered, depth - 1, world);
+        }
+        return color(0, 0, 0);
     }
 
     vec3 unit_dir = unit_vector(r.direction());

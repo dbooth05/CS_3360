@@ -7,15 +7,19 @@
 #include "vec3.hpp"
 #include "ray.hpp"
 #include "interval.hpp"
+#include "color.hpp"
 
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
 
+class material;
+
 class hit_record {
     public:
         vec3 p;
         vec3 norm;
+        shared_ptr<material> mat;
         double t;
         bool facing;
 
