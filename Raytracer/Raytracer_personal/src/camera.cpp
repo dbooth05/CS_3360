@@ -34,10 +34,11 @@ void camera::init() {
     center = lk_from;
 
     // viewport dims
-    auto focal_len = (lk_from - lk_at).len();
-    auto vp_ht = 2.0 * std::tan(deg_to_rad(fov) / 2) * focal_len;
-    auto vp_wd = vp_ht * (double(img_wd) / img_ht);
-    cam_center = vec3(0, 0, 0);
+    // auto focal_len = (lk_from - lk_at).len();
+    auto theta = deg_to_rad(fov);
+    auto h = std::tan(theta/2);
+    auto vp_ht = 2 * h * focus_dist;
+    auto vp_wd = vp_ht * (double(img_wd)/img_ht);
 
     // calculate basis unit vector
     w = unit_vector(lk_from - lk_at);
@@ -87,7 +88,7 @@ ray camera::get_ray(int i, int j) const {
     auto pix_sample = pix_loc
                 + ((i + offset.x()) * pix_delt_u)
                 + ((j + offset.y()) * pix_delt_v);
-    auto ray_orig = center;
+    auto ray_orig = (defocus_angle <= 0) ? center : defocus_disk_sample();
     auto ray_dir = pix_sample - ray_orig;
 
     return ray(ray_orig, ray_dir);
@@ -95,4 +96,9 @@ ray camera::get_ray(int i, int j) const {
 
 vec3 camera::sample_sqr() const {
     return vec3(rand_double() - 0.5, rand_double() - 0.5, 0);
+}
+
+vec3 camera::defocus_disk_sample() const {
+    auto p = random_in_unit_disk();
+    return center + (p[0] * defocus_u) + (p[1] * defocus_v);
 }

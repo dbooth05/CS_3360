@@ -9,12 +9,12 @@
 
 class camera {
     public:
-        int img_wd = DEFAULT_WIDTH;
-        double aspect = DEFAULT_ASPECT;
-        int max_depth = DEFAULT_MAX_DEPTH;
-        int anti_alias = DEFAULT_ANTI_ALIAS;
+        int img_wd = default_width;
+        double aspect = default_aspect;
+        int max_depth = default_max_depth;
+        int anti_alias = default_anti_alias;
 
-        double fov = DEFAULT_FOV;
+        double fov = default_fov;
         vec3 lk_from = vec3(0, 0, 0);
         vec3 lk_at = vec3(0, 0, -1);
         vec3 vup = vec3(0, 1, 0);
@@ -42,6 +42,8 @@ class camera {
         ray get_ray(int i, int j) const;
 
         vec3 sample_sqr() const;
+
+        vec3 defocus_disk_sample() const ;
 };
 
 #endif

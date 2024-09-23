@@ -14,11 +14,11 @@ using std::shared_ptr;
 using std::vector;
 
 // default vales
-#define DEFAULT_WIDTH 1024
-#define DEFAULT_ASPECT 16.0/9.0
-#define DEFAULT_MAX_DEPTH 15
-#define DEFAULT_ANTI_ALIAS 15
-#define DEFAULT_FOV 90
+const int default_width = 1024;
+const double default_aspect = 16.0 / 9.0;
+const int default_max_depth = 15;
+const int default_anti_alias = 15;
+const int default_fov = 90;
 
 const double pi = 3.14159265;
 const double inf = std::numeric_limits<double>::infinity();
