@@ -9,12 +9,16 @@ void camera::render(const hittable &world) {
     for (int j = 0; j < img_ht; j++) {
         std::clog << "\rProgress: " << j << "/" << img_ht << std::flush;
         for (int i = 0; i < img_wd; i++) {
-            auto pix_center = pix_loc + (i * pix_delt_u) + (j * pix_delt_v);
-            auto ray_dir = pix_center - cam_center;
-            ray r(cam_center, ray_dir);
+            
+            color pix_col(0, 0, 0);
+            for (int k = 0; k < anti_alias; k++) {
+                ray r = get_ray(i, j);
+                pix_col += ray_color(r, world); 
+            }
 
-            color pix_col = ray_color(r, world);
-            write_color(std::cout, pix_col);
+            color output_col = pix_col * anti_alias_scale;
+
+            write_color(std::cout, output_col);
         }
     }
 
@@ -67,4 +71,19 @@ color camera::ray_color(const ray &r, const hittable &world) {
     vec3 unit_dir = unit_vector(r.direction());
     auto a = 0.5 * (unit_dir.y() + 1.0);
     return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color (0.5, 0.7, 1.0);
+}
+
+ray camera::get_ray(int i, int j) const {
+    auto offset = sample_sqr();
+    auto pix_sample = pix_loc
+                + ((i + offset.x()) * pix_delt_u)
+                + ((j + offset.y()) * pix_delt_v);
+    auto ray_orig = center;
+    auto ray_dir = pix_sample - ray_orig;
+
+    return ray(ray_orig, ray_dir);
+}
+
+vec3 camera::sample_sqr() const {
+    return vec3(rand_double() - 0.5, rand_double() - 0.5, 0);
 }

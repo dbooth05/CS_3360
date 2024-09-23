@@ -37,6 +37,10 @@ class camera {
         vec3 defocus_u, defocus_v;
 
         void init();
+
+        ray get_ray(int i, int j) const;
+
+        vec3 sample_sqr() const;
 };
 
 #endif

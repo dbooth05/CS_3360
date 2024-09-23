@@ -2,6 +2,8 @@
 #define COLOR_HPP
 
 #include "vec3.hpp"
+#include "interval.hpp"
+
 #include <iostream>
 
 #define R 0
