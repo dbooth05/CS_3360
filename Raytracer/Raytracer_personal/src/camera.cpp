@@ -13,7 +13,7 @@ void camera::render(const hittable &world) {
             color pix_col(0, 0, 0);
             for (int k = 0; k < anti_alias; k++) {
                 ray r = get_ray(i, j);
-                pix_col += ray_color(r, world); 
+                pix_col += ray_color(r, max_depth, world); 
             }
 
             color output_col = pix_col * anti_alias_scale;
@@ -62,10 +62,14 @@ void camera::init() {
     defocus_v = v * defocus_rad;
 }
 
-color camera::ray_color(const ray &r, const hittable &world) {
+color camera::ray_color(const ray &r, int depth, const hittable &world) {
+
+    if (depth <= 0) { return color(0, 0, 0); }
+
     hit_record rec;
-    if (world.hit(r, interval(0, inf), rec)) {
-        return 0.5 * (rec.norm + color(1, 1, 1));
+    if (world.hit(r, interval(0.001, inf), rec)) {
+        vec3 dir = rec.norm + random_unit_vector();
+        return 0.1 * ray_color(ray(rec.p, dir), depth - 1, world);
     }
 
     vec3 unit_dir = unit_vector(r.direction());

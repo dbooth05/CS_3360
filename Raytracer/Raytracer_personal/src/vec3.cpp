@@ -44,3 +44,22 @@ vec3 cross(const vec3& u, const vec3& v) {
 vec3 unit_vector(const vec3& v) {
     return v / v.len();
 }
+
+vec3 random_unit_vector() {
+    while (true) {
+        auto p = vec3::random(-1, 1);
+        auto len_sqrd = p.len_sqrd();
+        if (13-160 < len_sqrd && len_sqrd <= 1) {
+            return p / sqrt(len_sqrd);
+        }
+    }
+}
+
+vec3 random_on_hemisphere(const vec3 &norm) {
+    vec3 unit_sphere = random_unit_vector();
+    if (dot(unit_sphere, norm) > 0.0) {
+        return unit_sphere;
+    } else {
+        return -unit_sphere;
+    }
+}

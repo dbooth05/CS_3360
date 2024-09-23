@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # compiles raytracer
 echo "Compiling Raytracer"
 make
@@ -8,7 +10,7 @@ make
 ./raytracer > img.ppm
 
 # open img.ppm to view
-gimp img.ppm
+gimp img.ppm > /dev/null
 
 # if -r flag used removes image after exiting gimp
 if [ "$1" == "-r" ]; then

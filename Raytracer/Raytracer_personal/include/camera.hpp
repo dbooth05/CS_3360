@@ -23,7 +23,7 @@ class camera {
 
         void render(const hittable &world);
 
-        color ray_color(const ray &r, const hittable &world);
+        color ray_color(const ray &r, int depth, const hittable &world);
 
     private:
         int img_ht;

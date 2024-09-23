@@ -12,6 +12,8 @@
 
 using color = vec3;
 
+inline double lin_to_gamma(double lin_comp);
+
 void write_color(std::ostream &out, color &col);
 
 #endif

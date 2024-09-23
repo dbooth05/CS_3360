@@ -10,9 +10,10 @@ int main(int argc, char *argv[]) {
 
     camera cam;
 
-    cam.img_wd = 768;
+    cam.img_wd = 420;
+    // cam.img_wd = 768;
     cam.aspect = 4.0/3.0;
-    cam.anti_alias = 100;
+    cam.anti_alias = 50;
 
     cam.render(world);
 
