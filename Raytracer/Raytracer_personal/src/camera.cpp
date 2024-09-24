@@ -91,7 +91,9 @@ ray camera::get_ray(int i, int j) const {
     auto ray_orig = (defocus_angle <= 0) ? center : defocus_disk_sample();
     auto ray_dir = pix_sample - ray_orig;
 
-    return ray(ray_orig, ray_dir);
+    auto r_time = random_double();
+
+    return ray(ray_orig, ray_dir, r_time);
 }
 
 vec3 camera::sample_sqr() const {

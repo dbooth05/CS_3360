@@ -7,14 +7,14 @@ bool lamber::scatter(const ray &r, const hit_record &rec, color &atten, ray &sca
         scatter_dir = rec.norm;
     }
 
-    scattered = ray(rec.p, scatter_dir);
+    scattered = ray(rec.p, scatter_dir, r.time());
     atten = albedo;
     return true;
 }
 
 bool metal::scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const {
     vec3 reflected = unit_vector(reflect(r.direction(), rec.norm)) + (fuzz * random_unit_vector());
-    scattered = ray(rec.p, reflected);
+    scattered = ray(rec.p, reflected, r.time());
     atten = albedo;
     return dot(scattered.direction(), rec.norm) > 0;
 }
@@ -35,7 +35,7 @@ bool dialectric::scatter(const ray &r, const hit_record &rec, color &atten, ray 
         dir = refract(unit_dir, rec.norm, ri);
     }
 
-    scattered = ray(rec.p, dir);
+    scattered = ray(rec.p, dir, r.time());
 
     return true;
 }
