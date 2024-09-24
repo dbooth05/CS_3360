@@ -41,8 +41,9 @@ int main(int argc, char *argv[]) {
                 if (choose_mat < 0.8) {
                     auto albedo = color::random() * color::random();
                     sphere_mat = make_shared<lamber>(albedo);
-                    auto c2 = center + vec3(0, random_double(0, 0.5), 0);
-                    world.add(make_shared<sphere>(center, c2, 0.2, sphere_mat));
+                    world.add(make_shared<sphere>(center, 0.2, sphere_mat));
+                    // auto c2 = center + vec3(0, random_double(0, 0.5), 0);
+                    // world.add(make_shared<sphere>(center, c2, 0.2, sphere_mat));
                 } else if (choose_mat < 0.95) {
                     auto albedo = color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
@@ -68,10 +69,11 @@ int main(int argc, char *argv[]) {
 
     camera cam;
 
-    cam.img_wd = 400;
+    cam.img_wd = 1200;
+    // cam.img_wd = 400;
     cam.aspect = 16.0 / 9.0;
-    cam.anti_alias = 50;
-    cam.max_depth = 25;
+    cam.anti_alias = 300;
+    cam.max_depth = 50;
 
     cam.fov = 20;
     cam.lk_from = vec3(13, 2, 3);

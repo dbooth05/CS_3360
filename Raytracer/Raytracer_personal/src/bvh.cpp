@@ -59,6 +59,3 @@ bool bvh_node::box_y_cmp(const shared_ptr<hittable> a, const shared_ptr<hittable
 bool bvh_node::box_z_cmp(const shared_ptr<hittable> a, const shared_ptr<hittable> b) {
     return box_cmp(a, b, 2);
 }
-
-// const axis_bound_box::empty = axis_bound_box(interval::empty, interval::empty, interval::empty);
-// const axis_bound_box axis_bound_box::universe = axis_bound_box(interval::universe, interval::universe, interval::universe);
