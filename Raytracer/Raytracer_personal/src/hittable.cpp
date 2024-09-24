@@ -1,5 +1,10 @@
 #include "hittable.hpp"
 
+void hittable_list::add(shared_ptr<hittable> obj) {
+    objs.push_back(obj);
+    bound_box = axis_bound_box(bound_box, obj->bounding_box());
+}
+
 void hit_record::set_facing(const ray &r, const vec3 &out) {
     facing = dot(r.direction(), out) < 0;
     norm = facing ? out : -out;

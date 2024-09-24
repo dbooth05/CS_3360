@@ -1,6 +1,7 @@
 #include "camera.hpp"
 #include "constants.hpp"
 #include "materials.hpp"
+#include "bvh.hpp"
 
 int main(int argc, char *argv[]) {
 
@@ -62,6 +63,8 @@ int main(int argc, char *argv[]) {
     world.add(make_shared<sphere>(vec3(0, 1, 0), 1.0, mat1));
     world.add(make_shared<sphere>(vec3(-4, 1, 0), 1.0, mat2));
     world.add(make_shared<sphere>(vec3(4, 1, 0), 1.0, mat3));
+
+    world = hittable_list(make_shared<bvh_node>(world));
 
     camera cam;
 

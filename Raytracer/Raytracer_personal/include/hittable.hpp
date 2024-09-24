@@ -8,6 +8,7 @@
 #include "ray.hpp"
 #include "interval.hpp"
 #include "color.hpp"
+#include "axis-bounding-box.hpp"
 
 using std::make_shared;
 using std::shared_ptr;
@@ -31,6 +32,8 @@ class hittable {
         virtual ~hittable() = default;
 
         virtual bool hit(const ray &r, interval inter, hit_record &rec) const = 0;
+
+        virtual axis_bound_box bounding_box() const = 0;
 };
 
 class hittable_list : public hittable {
@@ -43,9 +46,14 @@ class hittable_list : public hittable {
 
         void remove_objs() { objs.clear(); }
 
-        void add(shared_ptr<hittable> obj) { objs.push_back(obj); }
+        void add(shared_ptr<hittable> obj);
 
         bool hit(const ray &r, interval inter, hit_record &rec) const override;
+
+        axis_bound_box bounding_box() const override { return bound_box; }
+
+    private:
+        axis_bound_box bound_box;
 };  
 
 #endif

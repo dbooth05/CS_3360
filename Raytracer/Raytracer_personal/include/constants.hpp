@@ -35,6 +35,10 @@ inline double rand_double(double min, double max) {
     return min + (max - min) * rand_double();
 }
 
+inline int rand_int(int min, int max) {
+    return int(rand_double(min, max+1));
+}
+
 // common use src/header files
 #include "color.hpp"
 #include "interval.hpp"
