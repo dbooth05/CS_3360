@@ -16,12 +16,13 @@ class material {
 
 class lamber : public material {
     public:
-        lamber(const color &albedo) : albedo(albedo) {}
+        lamber(const color &albedo) : tex(make_shared<solid_color>(albedo)) {}
+        lamber(const shared_ptr<texture> tex) : tex(tex) {}
 
         bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override;
 
     private:
-        color albedo;
+        shared_ptr<texture> tex;
 };
 
 class metal : public material {

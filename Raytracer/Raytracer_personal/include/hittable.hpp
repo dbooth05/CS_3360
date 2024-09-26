@@ -21,7 +21,7 @@ class hit_record {
         vec3 p;
         vec3 norm;
         shared_ptr<material> mat;
-        double t;
+        double t, u, v;
         bool facing;
 
         void set_facing(const ray &r, const vec3 &out);

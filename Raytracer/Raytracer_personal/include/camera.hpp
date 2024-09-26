@@ -1,7 +1,8 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-#include <iostream>
+#include <sstream>
+#include <atomic>
 
 #include "constants.hpp"
 #include "hittable.hpp"
@@ -23,13 +24,17 @@ class camera {
         double defocus_angle = 0;  // variation angle of rays through each pixel
         double focus_dist    = 10; // distance from cam to lookfrom point to plane of perfect focus
 
+        void render_row(int j, const hittable &world, std::string** row_output);
+
         void render(const hittable &world);
 
         color ray_color(const ray &r, int depth, const hittable &world);
 
     private:
-        int img_ht;
         double anti_alias_scale;
+        int img_ht;
+
+        int progress = 0;
 
         vec3 center, cam_center, pix_loc;
         vec3 pix_delt_u, pix_delt_v;

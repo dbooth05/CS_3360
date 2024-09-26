@@ -5,10 +5,10 @@ echo "Compiling Raytracer"
 make
 
 # runs raytracer saving output to img.ppm 
-./raytracer >> img.ppm
+./raytracer > img.ppm
 
 # open img.ppm to view
-gimp img.ppm > /dev/null
+feh img.ppm > /dev/null
 
 # if -r flag used removes image after exiting gimp
 if [ "$1" == "-r" ]; then

@@ -8,7 +8,7 @@ bool lamber::scatter(const ray &r, const hit_record &rec, color &atten, ray &sca
     }
 
     scattered = ray(rec.p, scatter_dir, r.time());
-    atten = albedo;
+    atten = tex->value(rec.u, rec.v, rec.p);
     return true;
 }
 

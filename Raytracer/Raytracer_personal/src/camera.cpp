@@ -1,30 +1,48 @@
 #include "camera.hpp"
 
+void camera::render_row(int j, const hittable &world, std::string** row_output) { 
+
+    for (int i = 0; i < img_wd; i++) {
+        color pix_col(0, 0, 0);
+        for (int k = 0; k < anti_alias; k++) {
+            ray r = get_ray(i, j);
+            pix_col += ray_color(r, max_depth, world);
+        }
+
+        color out_col = pix_col * anti_alias_scale;
+        row_output[j][i] = write_color(out_col);
+    }
+}
+
 void camera::render(const hittable &world) {
 
     init();
 
-    ThreadPool(4);
+    ThreadPool pool(thread::hardware_concurrency());
+    
+    progress = 0;
 
-    std::cout << "P6\n" << img_wd << " " << img_ht << "\n255\n";
+    std::cout << "P3\n" << img_wd << " " << img_ht << "\n255\n";
 
-    for (int j = 0; j < img_ht; j++) {
-        std::clog << "\rProgress: " << j << "/" << img_ht << std::flush;
-        for (int i = 0; i < img_wd; i++) {
-            
-            color pix_col(0, 0, 0);
-            for (int k = 0; k < anti_alias; k++) {
-                ray r = get_ray(i, j);
-                pix_col += ray_color(r, max_depth, world); 
-            }
-
-            color output_col = pix_col * anti_alias_scale;
-
-            write_color(std::cout, output_col);
-        }
+    std::string** output = new std::string*[img_ht];
+    for (int i = 0; i < img_ht; i++) {
+        output[i] = new std::string[img_wd];
     }
 
-    std::clog << "\rDone.                   \n";
+    for (int j = 0; j < img_ht; j++) {
+        int row = j;
+        pool.enqueue(([this, &world, output, row]() {
+            render_row(row, world, output);
+        }));
+    }
+
+    pool.wait_till_done();
+
+    for (int i = 0; i < img_ht; i++) {
+        for (int j = 0; j < img_wd; j++) {
+            std::cout << output[i][j];
+        }
+    }
 }
 
 void camera::init() {
