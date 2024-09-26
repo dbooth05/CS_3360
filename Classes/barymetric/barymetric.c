@@ -6,13 +6,19 @@
 #define X 1024
 #define Y 768
 
+#define TX 1300
+#define TY 837
+
 typedef double vec3[3];
 
 typedef struct {
     vec3 a, b, c;
+    vec3 ta, tb, tc;
 } triangle;
 
 int8_t img[Y][X][3]; // Zero by placement
+
+vec3 texture[TY][TX];
 
 #define frand() (rand() / (RAND_MAX + 1.0))
 
@@ -32,6 +38,34 @@ void vec3_sub(vec3 s, vec3 v, vec3 w) {
     s[2] = v[2] - w[2];
 }
 
+void vec3_mul_scalar(vec3 v, vec3 w, double s) {
+    v[0] = s * w[0];
+    v[1] = s * w[1];
+    v[2] = s * w[2]; 
+}
+
+void gen_texture() {
+    int x, y;
+
+    for (y = 0; y < TY; y++) {
+        for (x = 0; x < TX; x++) {
+            if (y < TY / 2) {
+                texture[y][x][0] = 1.0;
+            } else {
+                if (x < TX / 2) {
+                    texture[y][x][1] = 1.0;
+                } else {
+                    texture[y][x][2] = 1.0;
+                }
+            }
+        }
+    }
+}
+
+void load_texture() {
+
+}
+
 
 
 int main(int argc, char *argv[]) {
@@ -43,6 +77,10 @@ int main(int argc, char *argv[]) {
     vec3 d1, d2;        // differences
     vec3 bary;
     vec3 color;
+    int i, aa;
+    vec3 uv;
+
+    aa = 1;
 
     t.a[0] = 0.3;
     t.a[1] = 0.3;
@@ -51,6 +89,16 @@ int main(int argc, char *argv[]) {
     t.c[0] = 0.5;
     t.c[1] = 0.7;
     t.a[2] = t.b[2] = t.c[2] = 0;
+
+    t.ta[0] = 0.0;
+    t.ta[1] = 1.0;
+    t.tb[0] = 0.0;
+    t.tb[1] = 0.0;
+    t.tc[0] = 0.5;
+    t.tc[1] = 1.0;
+    t.ta[2] = t.tb[2] = t.tc[2] = 0;
+
+    gen_texture();
 
     // n = (b-a) x (c-a)
     vec3_sub(d1, t.b, t.a);
@@ -95,11 +143,30 @@ int main(int argc, char *argv[]) {
             
             // if we remove the test, triangles will tessellate the plane
             if (bary[0] >= 0 && bary[1] >= 0 && bary[2] >= 0) {
-                color[0] += bary[0] * 255.999;
-                color[1] += bary[1] * 255.999;
-                color[2] += bary[2] * 255.999;
+                // uv = ta + beta(tb - ta) + gamma(tc - ta)
+                vec3_sub(d1, t.tb, t.ta);
+                vec3_mul_scalar(d1, d1, bary[1]);
+                vec3_sub(d2, t.tc, t.ta);
+                vec3_mul_scalar(d2, d2, bary[2]);
+                vec3_add(uv, d1, d2);
+                vec3_add(uv, uv, t.ta);
+
+
+                // // color according to barycentric coords
+                // color[0] += bary[0] * 255.999;
+                // color[1] += bary[1] * 255.999;
+                // color[2] += bary[2] * 255.999;
+
+                color[0] += texture[(int) (uv[1] * TY)][(int) (uv[0] * TX)][0];
+                color[1] += texture[(int) (uv[1] * TY)][(int) (uv[0] * TX)][1];
+                color[2] += texture[(int) (uv[1] * TY)][(int) (uv[0] * TX)][2];
+
             }
         }
+
+        img[y][x][0] = color[0] * 255.999 / aa;
+        img[y][x][1] = color[1] * 255.999 / aa;
+        img[y][x][2] = color[2] * 255.999 / aa;
     }
 
     f = fopen("barymetric.ppm", "w");

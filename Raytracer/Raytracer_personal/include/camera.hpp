@@ -6,6 +6,7 @@
 #include "constants.hpp"
 #include "hittable.hpp"
 #include "materials.hpp"
+#include "thread_pools.hpp"
 
 class camera {
     public:

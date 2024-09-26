@@ -4,6 +4,8 @@ void camera::render(const hittable &world) {
 
     init();
 
+    ThreadPool(4);
+
     std::cout << "P6\n" << img_wd << " " << img_ht << "\n255\n";
 
     for (int j = 0; j < img_ht; j++) {
