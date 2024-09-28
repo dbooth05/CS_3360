@@ -42,7 +42,7 @@ class solid_color : public texture {
 class checkers : public texture {
     public:
         checkers(double scale, shared_ptr<texture> even, shared_ptr<texture> odd) 
-            : inv_scale(scale), even(even), odd(odd) {}
+            : inv_scale(1.0 / scale), even(even), odd(odd) {}
 
         checkers(double scale, const color &col1, const color &col2)
             : checkers(scale, make_shared<solid_color>(col1), make_shared<solid_color>(col2)) {}

@@ -21,6 +21,8 @@ class sphere : public hittable {
             bound_box = axis_bound_box(b1, b2);
         }
 
+        static void get_sphere_uv(const vec3 &p, double &u, double &v);
+
         bool hit(const ray &r, interval inter, hit_record &rec) const override;
 
         axis_bound_box bounding_box() const override { return bound_box; }

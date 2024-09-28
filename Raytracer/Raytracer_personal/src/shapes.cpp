@@ -1,5 +1,13 @@
 #include "shapes.hpp"
 
+void sphere::get_sphere_uv(const vec3 &p, double &u, double &v) {
+    auto theta = std::acos(-p.y());
+    auto phi = std::atan2(-p.z(), p.x()) + pi;
+
+    u = phi / (2 * pi);
+    v = theta / pi;
+}
+
 bool sphere::hit(const ray &r, interval inter, hit_record &rec) const {
 
     vec3 cur_center = center.at(r.time());
@@ -27,7 +35,7 @@ bool sphere::hit(const ray &r, interval inter, hit_record &rec) const {
     rec.p = r.at(rec.t);
     vec3 out = (rec.p - cur_center) / rad;
     rec.set_facing(r, out);
-
+    get_sphere_uv(out, rec.u, rec.v);
     rec.mat = mat;
 
     return true;

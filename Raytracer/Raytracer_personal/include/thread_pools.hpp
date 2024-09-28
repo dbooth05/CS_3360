@@ -58,6 +58,7 @@ public:
                     std::clog << "\rProgress: " << active_tasks << "                " << std::flush;
                     if (active_tasks <= 0) {
                         done.notify_all();
+                        std::clog << "\nDone.                           " << std::flush;
                     }
                 }
             });
