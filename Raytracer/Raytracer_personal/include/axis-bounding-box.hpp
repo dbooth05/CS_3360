@@ -11,7 +11,7 @@ class axis_bound_box {
 
         axis_bound_box() {}
 
-        axis_bound_box(const interval &x, const interval &y, const interval &z) : x(x), y(y), z(z) {}
+        axis_bound_box(const interval &x, const interval &y, const interval &z) : x(x), y(y), z(z) { pad_to_mins(); }
 
         axis_bound_box(const vec3 &u, const vec3 &v);
 
@@ -26,7 +26,7 @@ class axis_bound_box {
         static const axis_bound_box empty, universe;
 
     private:
-
+        void pad_to_mins();
 };
 
 #endif

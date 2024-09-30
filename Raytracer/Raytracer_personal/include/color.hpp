@@ -3,6 +3,7 @@
 
 #include "vec3.hpp"
 #include "interval.hpp"
+#include "perlin.hpp"
 
 #include <iostream>
 #include <memory>
@@ -21,22 +22,22 @@ inline double lin_to_gamma(double lin_comp);
 std::string write_color(color &col);
 
 class texture {
-  public:
-    virtual ~texture() = default;
+    public:
+        virtual ~texture() = default;
 
-    virtual color value(double u, double v, const vec3& p) const = 0;
+        virtual color value(double u, double v, const vec3& p) const = 0;
 };
 
 class solid_color : public texture {
-  public:
-    solid_color(const color& albedo) : albedo(albedo) {}
+    public:
+        solid_color(const color& albedo) : albedo(albedo) {}
 
-    solid_color(double r, double g, double b) : solid_color(color(r,g,b)) {}
+        solid_color(double r, double g, double b) : solid_color(color(r,g,b)) {}
 
-    color value(double u, double v, const vec3 &p) const override { return albedo; }
+        color value(double u, double v, const vec3 &p) const override { return albedo; }
 
-  private:
-    color albedo;
+    private:
+        color albedo;
 };
 
 class checkers : public texture {
@@ -52,6 +53,17 @@ class checkers : public texture {
     private:
         double inv_scale;
         shared_ptr<texture> even, odd;
+};
+
+class noise_tex : public texture {
+    public:
+        noise_tex(double scale) : scale(scale) {}
+
+        color value(double u, double v, const vec3 &p) const override;
+
+    private:
+        perlin noise;
+        double scale;
 };
 
 #endif

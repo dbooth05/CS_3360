@@ -32,3 +32,7 @@ color checkers::value(double u, double v, const vec3 &p) const {
 
     return is_even ? even->value(u, v, p) : odd->value(u, v, p);
 }
+
+color noise_tex::value(double u, double v, const vec3 &p) const {
+    return color(0.5, 0.5, 0.5) * (1 + std::sin(scale * p.z() + 10 * noise.turbulence(p, 7)));
+}

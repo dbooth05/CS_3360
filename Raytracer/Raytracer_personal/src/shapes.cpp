@@ -41,3 +41,13 @@ bool sphere::hit(const ray &r, interval inter, hit_record &rec) const {
     return true;
 
 }
+
+void quad::set_bounding_box() {
+    auto bound_box_diag1 = axis_bound_box(Q, Q + u + v);
+    auto bound_box_diag2 = axis_bound_box(Q + u, Q + v);
+    bound_box = axis_bound_box(bound_box_diag1, bound_box_diag2);
+}
+
+bool quad::hit(const ray &r, interval inter, hit_record &rec) const {
+    return false;
+}

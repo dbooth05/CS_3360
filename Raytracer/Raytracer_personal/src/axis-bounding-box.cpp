@@ -4,6 +4,8 @@ axis_bound_box::axis_bound_box(const vec3 &u, const vec3 &v) {
     x = (u[0] <= v[0]) ? interval(u[0], v[0]) : interval(v[0], u[0]);
     y = (u[1] <= v[1]) ? interval(u[1], v[1]) : interval(v[1], u[1]);
     z = (u[2] <= v[2]) ? interval(u[2], v[2]) : interval(v[2], u[2]);
+
+    pad_to_mins();
 }
 
 axis_bound_box::axis_bound_box(const axis_bound_box &b0, const axis_bound_box &b1) {
@@ -51,6 +53,13 @@ int axis_bound_box::longest_axis() const  {
     } else {
         return y.size() > z.size() ? 1 : 2;
     }
+}
+
+void axis_bound_box::pad_to_mins() {
+    double delta = 0.0001;
+    if (x.size() < delta) x = x.expand(delta);
+    if (y.size() < delta) y = y.expand(delta);
+    if (z.size() < delta) z = z.expand(delta);
 }
 
 const axis_bound_box axis_bound_box::empty = axis_bound_box(interval::empty, interval::empty, interval::empty);

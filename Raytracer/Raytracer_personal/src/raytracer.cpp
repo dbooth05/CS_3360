@@ -75,6 +75,14 @@ void checkered_spheres(hittable_list &world) {
 
 }
 
+void perlin_sphere(hittable_list &world, camera &cam) {
+    auto perlin = make_shared<noise_tex>(4);
+    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lamber>(perlin)));
+    world.add(make_shared<sphere>(vec3(0, 2, 0), 2, make_shared<lamber>(perlin)));
+
+    cam.defocus_angle = 0;
+}
+
 void earth_sphere(hittable_list &world, camera cam) {
 
 
@@ -118,7 +126,7 @@ int main(int argc, char *argv[]) {
     cam.max_depth = 50;
 
     cam.fov = 20;
-    // cam.lk_from = vec3(13, 2, 3);
+    cam.lk_from = vec3(13, 2, 3);
     cam.lk_at = vec3(0, 0, 0);
     cam.vup = vec3(0, 1, 0);
 
@@ -127,11 +135,12 @@ int main(int argc, char *argv[]) {
 
 
     
-    switch (0)
+    switch (3)
     {
         case 0: my_custom_scene(world, cam); break;
         case 1: bouncing_spheres(world); break;
         case 2: checkered_spheres(world); break;
+        case 3: perlin_sphere(world, cam); break;
         default:
             break;
     }
