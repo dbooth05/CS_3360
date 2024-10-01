@@ -61,4 +61,6 @@ class quad : public hittable {
         double D;
 };
 
+shared_ptr<hittable_list> box(const vec3 &a, const vec3 &b, shared_ptr<material> mat);
+
 #endif

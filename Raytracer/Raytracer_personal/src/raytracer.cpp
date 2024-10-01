@@ -131,6 +131,37 @@ void light(hittable_list &world, camera &cam) {
     cam.bg = color(0, 0, 0);
 }
 
+void cornell(hittable_list &world, camera &cam) {
+    auto red = make_shared<lamber>(color(0.65, 0.05, 0.05));
+    auto wht = make_shared<lamber>(color(0.73, 0.73, 0.73));
+    auto grn = make_shared<lamber>(color(0.12, 0.45, 0.15));
+    auto lgt = make_shared<diffuse_light>(color(15, 15, 15));
+
+    world.add(make_shared<quad>(vec3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), grn));
+    world.add(make_shared<quad>(vec3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), red));
+    world.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), lgt));
+    world.add(make_shared<quad>(vec3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555), wht));
+    world.add(make_shared<quad>(vec3(555, 555, 555), vec3(-555, 0, 0), vec3(0, 0, -555), wht));
+    world.add(make_shared<quad>(vec3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), wht));
+
+    // two small boxes
+    world.add(box(vec3(130, 0, 65), vec3(295, 165, 230), wht));
+    world.add(box(vec3(265, 0, 295), vec3(430, 330, 460), wht));
+
+    cam.aspect = 1.0;
+    cam.img_wd = 600;
+    cam.anti_alias = 200;
+    cam.max_depth = 100;
+    cam.bg = color(0, 0, 0);
+
+    cam.fov = 40;
+    cam.lk_from = vec3(278, 278, -800);
+    cam.lk_at = vec3(278, 278, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 void earth_sphere(hittable_list &world, camera cam) {
 
 
@@ -185,7 +216,7 @@ int main(int argc, char *argv[]) {
 
 
     
-    switch (5)
+    switch (6)
     {
         case 0: my_custom_scene(world, cam); break;
         case 1: bouncing_spheres(world); break;
@@ -193,6 +224,7 @@ int main(int argc, char *argv[]) {
         case 3: perlin_sphere(world, cam); break;
         case 4: quads(world, cam); break;
         case 5: light(world, cam); break;
+        case 6: cornell(world, cam); break;
         default:
             break;
     }
