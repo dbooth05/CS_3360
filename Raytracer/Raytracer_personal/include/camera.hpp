@@ -15,6 +15,7 @@ class camera {
         double aspect = default_aspect;
         int max_depth = default_max_depth;
         int anti_alias = default_anti_alias;
+        color bg;
 
         double fov = default_fov;
         vec3 lk_from = vec3(0, 0, 0);

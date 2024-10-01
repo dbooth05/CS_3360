@@ -36,7 +36,14 @@ class sphere : public hittable {
 
 class quad : public hittable {
     public:
-        quad(const vec3 &q, const vec3 &u, const vec3 &v, shared_ptr<material> mat) : Q(Q), u(u), v(v), mat(mat) { set_bounding_box; }
+        quad(const vec3 &Q, const vec3 &u, const vec3 &v, shared_ptr<material> mat) : Q(Q), u(u), v(v), mat(mat) { 
+            auto n = cross(u, v);
+            norm = unit_vector(n);
+            D = dot(norm, Q);
+            w = n / dot(n, n); 
+
+            set_bounding_box(); 
+        }
 
         virtual void set_bounding_box();
 
@@ -44,10 +51,14 @@ class quad : public hittable {
 
         bool hit(const ray &r, interval inter, hit_record &rec) const override;
 
+        virtual bool is_interior(double a, double b, hit_record &rec) const;
+
     private:
-        vec3 Q, u, v;
+        vec3 Q, u, v, w;
         shared_ptr<material> mat;
         axis_bound_box bound_box;
+        vec3 norm;
+        double D;
 };
 
 #endif

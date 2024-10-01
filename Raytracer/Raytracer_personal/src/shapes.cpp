@@ -49,5 +49,43 @@ void quad::set_bounding_box() {
 }
 
 bool quad::hit(const ray &r, interval inter, hit_record &rec) const {
-    return false;
+    auto denominator = dot(norm, r.direction());
+
+    if (std::fabs(denominator) < 1e-8) {
+        return false;
+    }
+
+    auto t = (D - dot(norm, r.origin())) / denominator;
+    if (!inter.contains(t)) {
+        return false;
+    }
+
+    auto intersection = r.at(t);
+
+    vec3 planar_hit_vec = intersection - Q;
+    auto alpha = dot(w, cross(planar_hit_vec, v));
+    auto beta = dot(w, cross(u, planar_hit_vec));
+
+    if (!is_interior(alpha, beta, rec)) {
+        return false;
+    }
+
+    rec.t = t;
+    rec.p = intersection;
+    rec.mat = mat;
+    rec.set_facing(r, norm);
+
+    return true;
+}
+
+bool quad::is_interior(double a, double b, hit_record &rec) const {
+    interval unit_interval = interval(0, 1);
+
+    if (!unit_interval.contains(a) || !unit_interval.contains(b)) {
+        return false;
+    }
+
+    rec.u = a;
+    rec.v = b;
+    return true;
 }

@@ -89,18 +89,21 @@ color camera::ray_color(const ray &r, int depth, const hittable &world) {
 
     hit_record rec;
 
-    if (world.hit(r, interval(0.001, inf), rec)) {
-        ray scattered;
-        color atten;
-        if (rec.mat->scatter(r, rec, atten, scattered)) {
-            return atten * ray_color(scattered, depth - 1, world);
-        }
-        return color(0, 0, 0);
+    if (!world.hit(r, interval(0.001, inf), rec)) {
+        return bg;
     }
 
-    vec3 unit_dir = unit_vector(r.direction());
-    auto a = 0.5 * (unit_dir.y() + 1.0);
-    return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color (0.5, 0.7, 1.0);
+    ray scattered;
+    color atten;
+    color col_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+
+    if (!rec.mat->scatter(r, rec, atten, scattered)) {
+        return col_from_emission;
+    }
+
+    color col_from_scatter = atten * ray_color(scattered, depth - 1, world);
+
+    return col_from_emission + col_from_scatter;
 }
 
 ray camera::get_ray(int i, int j) const {

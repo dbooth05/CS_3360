@@ -83,6 +83,54 @@ void perlin_sphere(hittable_list &world, camera &cam) {
     cam.defocus_angle = 0;
 }
 
+void quads(hittable_list &world, camera &cam) {
+    auto red = make_shared<lamber>(color(1.0, 0.2, 0.2));
+    auto grn = make_shared<lamber>(color(0.2, 1.0, 0.2));
+    auto blu = make_shared<lamber>(color(0.2, 0.2, 1.0));
+    auto org = make_shared<lamber>(color(1.0, 0.5, 0.0));
+    auto tel = make_shared<lamber>(color(0.2, 0.8, 0.8));
+
+    world.add(make_shared<quad>(vec3(-3, -2, 5), vec3(0, 0, -4), vec3(0, 4, 0), red));
+    world.add(make_shared<quad>(vec3(-2, -2, 0), vec3(4, 0, 0), vec3(0, 4, 0), grn));
+    world.add(make_shared<quad>(vec3(3, -2, 1), vec3(0, 0, 4), vec3(0, 4, 0), blu));
+    world.add(make_shared<quad>(vec3(-2, 3, 1), vec3(4, 0, 0), vec3(0, 0, 4), org));
+    world.add(make_shared<quad>(vec3(-2, -3, 5), vec3(4, 0, 0), vec3(0, 0, -4), tel));
+
+    cam.aspect = 1.0;
+    cam.img_wd = 400;
+    cam.anti_alias = 1000;
+    cam.max_depth = 500;
+
+    cam.fov = 80;
+    cam.lk_from = vec3(0, 0, 9);
+    cam.lk_at = vec3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
+void light(hittable_list &world, camera &cam) {
+    auto pertext = make_shared<noise_tex>(4);
+    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lamber>(pertext)));
+    world.add(make_shared<sphere>(vec3(0, 2, 0), 2, make_shared<lamber>(pertext)));
+
+    auto diff_light = make_shared<diffuse_light>(color(4, 4, 4));
+    world.add(make_shared<sphere>(vec3(0, 7, 0), 2, diff_light));
+    world.add(make_shared<quad>(vec3(3, 1, -2), vec3(2, 0, 0), vec3(0, 2, 0), diff_light));
+
+    cam.fov = 20;
+    cam.lk_from = vec3(26, 3, 6);
+    cam.lk_at = vec3(0, 2, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+
+    cam.anti_alias = 500;
+    cam.max_depth = 250;
+
+    cam.bg = color(0, 0, 0);
+}
+
 void earth_sphere(hittable_list &world, camera cam) {
 
 
@@ -133,14 +181,18 @@ int main(int argc, char *argv[]) {
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
 
+    cam.bg = color(0.70, 0.80, 1.00);
+
 
     
-    switch (3)
+    switch (5)
     {
         case 0: my_custom_scene(world, cam); break;
         case 1: bouncing_spheres(world); break;
         case 2: checkered_spheres(world); break;
         case 3: perlin_sphere(world, cam); break;
+        case 4: quads(world, cam); break;
+        case 5: light(world, cam); break;
         default:
             break;
     }
