@@ -64,3 +64,11 @@ void axis_bound_box::pad_to_mins() {
 
 const axis_bound_box axis_bound_box::empty = axis_bound_box(interval::empty, interval::empty, interval::empty);
 const axis_bound_box axis_bound_box::universe = axis_bound_box(interval::universe, interval::universe, interval::universe);
+
+axis_bound_box operator+(const axis_bound_box& bbox, const vec3 &offset) {
+    return axis_bound_box(bbox.x + offset.x(), bbox.y + offset.y(), bbox.z + offset.z());
+}
+
+axis_bound_box operator+(const vec3 &offset, const axis_bound_box &bbox) {
+    return bbox + offset;
+}

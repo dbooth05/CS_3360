@@ -1,0 +1,6 @@
+# ignore all compiled code
+*.o
+raytracer
+
+# ignore vscode files
+.vscode/

@@ -1,7 +1,25 @@
+#include <string>
+
 #include "camera.hpp"
 #include "constants.hpp"
 #include "materials.hpp"
 #include "bvh.hpp"
+
+enum class scences {
+    CUSTOM,
+    BOUNCING_SPHERES,
+    CHECKERED_SPHERES,
+    PERLIN_SPHERE,
+    QUADS,
+    LIGHT,
+    CORNELL
+};
+
+enum class camera_settings {
+// TODO, make these then store cam settings in array for instance
+};
+
+double settings[];
 
 void my_custom_scene(hittable_list &world, camera &cam) {
 
@@ -20,9 +38,11 @@ void my_custom_scene(hittable_list &world, camera &cam) {
     }
 
 
-    cam.anti_alias = 500;
+    cam.anti_alias = 100;
     cam.max_depth = 100;
     cam.lk_from = vec3(0, 0, 10);
+
+    cam.defocus_angle = 0;
 }
 
 void bouncing_spheres(hittable_list &world) {
@@ -125,7 +145,7 @@ void light(hittable_list &world, camera &cam) {
 
     cam.defocus_angle = 0;
 
-    cam.anti_alias = 500;
+    cam.anti_alias = 200;
     cam.max_depth = 250;
 
     cam.bg = color(0, 0, 0);
@@ -145,13 +165,20 @@ void cornell(hittable_list &world, camera &cam) {
     world.add(make_shared<quad>(vec3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), wht));
 
     // two small boxes
-    world.add(box(vec3(130, 0, 65), vec3(295, 165, 230), wht));
-    world.add(box(vec3(265, 0, 295), vec3(430, 330, 460), wht));
+    shared_ptr<hittable> b1 = box(vec3(0, 0, 0), vec3(165, 330, 165), wht);
+    b1 = make_shared<rotate_y>(b1, 15);
+    b1 = make_shared<translate>(b1, vec3(265, 0, 295));
+    world.add(b1);
+
+    shared_ptr<hittable> b2 = box(vec3(0, 0, 0), vec3(165, 165, 165), wht);
+    b2 = make_shared<rotate_y>(b2, -18);
+    b2 = make_shared<translate>(b2, vec3(140, 0, 65));
+    world.add(b2);
 
     cam.aspect = 1.0;
-    cam.img_wd = 600;
-    cam.anti_alias = 200;
-    cam.max_depth = 100;
+    cam.img_wd = 400;
+    cam.anti_alias = 1000;
+    cam.max_depth = 50;
     cam.bg = color(0, 0, 0);
 
     cam.fov = 40;
@@ -215,8 +242,27 @@ int main(int argc, char *argv[]) {
     cam.bg = color(0.70, 0.80, 1.00);
 
 
+    int select = 0;
+
+    if (argc > 1) {
+        for (int i = 0; i < argc; i++) {
+
+            std::string arg = argv[i];
+
+            if (arg.find("-scene=") == 0) {
+
+                int tmp = std::stoi(arg.substr(7));
+                if (tmp >= 0 && tmp < static_cast<int>(scences::CORNELL)+1) {
+                    select = tmp;
+                }
+            } else if (arg.find("-alias=") == 0) {
+                cam.anti_alias = std::stoi(arg.substr(7)) > 0 ? std::stoi(arg.substr(7)) : default_anti_alias;
+            }
+        }
+    }
+
     
-    switch (6)
+    switch (select)
     {
         case 0: my_custom_scene(world, cam); break;
         case 1: bouncing_spheres(world); break;

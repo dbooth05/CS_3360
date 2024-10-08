@@ -34,4 +34,7 @@ class interval {
         static const interval universe;
 };
 
+interval operator+(const interval &ival, double displace);
+interval operator+(double displace, const interval &ival);
+
 #endif

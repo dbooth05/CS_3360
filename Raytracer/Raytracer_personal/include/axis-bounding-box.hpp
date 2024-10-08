@@ -29,4 +29,7 @@ class axis_bound_box {
         void pad_to_mins();
 };
 
+axis_bound_box operator+(const axis_bound_box &bbox, const vec3 &offset);
+axis_bound_box operator+(const vec3 &offset, const axis_bound_box &bbox);
+
 #endif
