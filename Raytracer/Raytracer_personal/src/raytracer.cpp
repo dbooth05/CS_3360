@@ -16,19 +16,31 @@ enum class scences {
 };
 
 enum class camera_settings {
-// TODO, make these then store cam settings in array for instance
+    IMG_WD,
+    ASPECT,
+    MAX_DEPTH,
+    ANTI_ALIAS,
+    BACKGROUND_COLOR,
+    FOV,
+    LK_FROM,
+    LK_AT,
+    VUP,
+    DEFOCUS_ANGLE,
+    FOCUS_DIST
 };
 
-double settings[];
+void* cam_settings[static_cast<int>(camera_settings::FOCUS_DIST)+1];
 
 void my_custom_scene(hittable_list &world, camera &cam) {
 
-    auto mat_grnd = make_shared<lamber>(color(.098, 0.0, 0.2));
+    auto mat_grnd = make_shared<lamber>(color(0.098, 0.0, 0.2));
     auto mirror = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-    auto glass = make_shared<dialectric>(1.33);
+    auto glass = make_shared<dialectric>(1.0 / 1.5);
+    auto glass1 = make_shared<dialectric>(1.5);
 
     world.add(make_shared<sphere>(vec3(0, -1001, 0), 1000, mat_grnd));
-    world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 1.0, glass));
+    world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 1.0, glass1));
+    world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 0.5, glass));
     world.add(make_shared<sphere>(vec3( 1.25, 0, 0), 1.0, mirror));
 
 
@@ -38,8 +50,8 @@ void my_custom_scene(hittable_list &world, camera &cam) {
     }
 
 
-    cam.anti_alias = 100;
-    cam.max_depth = 100;
+    cam.anti_alias = 500;
+    cam.max_depth = 1000;
     cam.lk_from = vec3(0, 0, 10);
 
     cam.defocus_angle = 0;
