@@ -4,6 +4,3 @@ raytracer
 
 # ignore vscode files
 .vscode/
-
-# ignore standard generated files
-img*.ppm

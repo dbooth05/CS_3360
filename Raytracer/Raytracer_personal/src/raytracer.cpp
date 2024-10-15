@@ -3,7 +3,6 @@
 #include "camera.hpp"
 #include "constants.hpp"
 #include "materials.hpp"
-#include "mediums.hpp"
 #include "bvh.hpp"
 
 enum class scences {
@@ -13,8 +12,7 @@ enum class scences {
     PERLIN_SPHERE,
     QUADS,
     LIGHT,
-    CORNELL,
-    CORNELL_SMOKE
+    CORNELL
 };
 
 enum class camera_settings {
@@ -39,30 +37,24 @@ void my_custom_scene(hittable_list &world, camera &cam) {
     auto mirror = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     auto glass = make_shared<dialectric>(1.0 / 1.5);
     auto glass1 = make_shared<dialectric>(1.5);
-    auto light = make_shared<diffuse_light>(color(10, 10, 10));
-    auto white = make_shared<lamber>(color(0.99, 0.99, 0.99));
 
     world.add(make_shared<sphere>(vec3(0, -1001, 0), 1000, mat_grnd));
     world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 1.0, glass1));
     world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 0.5, glass));
     world.add(make_shared<sphere>(vec3( 1.25, 0, 0), 1.0, mirror));
-    world.add(make_shared<sphere>(vec3( 0, 4, 0), 1.5, light));
+
 
     auto bg_mat = make_shared<lamber>(color(1.0, 0.0, 0.0));
     for (int i = 0; i < 4; i++) {
         world.add(make_shared<sphere>(vec3(-3 + (i * 2), 0.0, -6), 1.0, bg_mat));
     }
 
-    shared_ptr<hittable> cloud = make_shared<sphere>(vec3(0, 4, 0), 3, white);
-    world.add(make_shared<medium>(cloud, 0.001, color(0.8, 0.8, 0.8)));
 
     cam.img_wd = 1900;
     cam.aspect = 16.0 / 9.0;
     cam.anti_alias = 100;
     cam.max_depth = 500;
     cam.lk_from = vec3(0, 0, 10);
-
-    cam.bg = color(0, 0, 0);
 
     cam.defocus_angle = 0;
 }
@@ -211,43 +203,10 @@ void cornell(hittable_list &world, camera &cam) {
     cam.defocus_angle = 0;
 }
 
-void cornell_smoke(hittable_list &world, camera &cam) {
-    
-    auto red = make_shared<lamber>(color(0.65, 0.05, 0.05));
-    auto wht = make_shared<lamber>(color(0.73, 0.73, 0.73));
-    auto grn = make_shared<lamber>(color(0.12, 0.45, 0.15));
-    auto lgt = make_shared<diffuse_light>(color(7, 7, 7));
+void earth_sphere(hittable_list &world, camera cam) {
 
-    world.add(make_shared<quad>(vec3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), grn));
-    world.add(make_shared<quad>(vec3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), red));
-    world.add(make_shared<quad>(vec3(113, 554, 127), vec3(330, 0, 0), vec3(0, 0, 305), lgt));
-    world.add(make_shared<quad>(vec3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555), wht));
-    world.add(make_shared<quad>(vec3(555, 555, 555), vec3(-555, 0, 0), vec3(0, 0, -555), wht));
-    world.add(make_shared<quad>(vec3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), wht));
 
-    // two small boxes
-    shared_ptr<hittable> b1 = box(vec3(0, 0, 0), vec3(165, 330, 165), wht);
-    b1 = make_shared<rotate_y>(b1, 15);
-    b1 = make_shared<translate>(b1, vec3(265, 0, 295));
-
-    shared_ptr<hittable> b2 = box(vec3(0, 0, 0), vec3(165, 165, 165), wht);
-    b2 = make_shared<rotate_y>(b2, -18);
-    b2 = make_shared<translate>(b2, vec3(140, 0, 65));
-
-    world.add(make_shared<medium>(b1, 0.01, color(0, 0, 0)));
-    world.add(make_shared<medium>(b2, 0.01, color(1, 1, 1)));
-
-    cam.aspect = 1.0;
-    cam.img_wd = 600;
-    cam.anti_alias = 200;
-    cam.max_depth = 50;
-    cam.bg = color(0, 0, 0);
-
-    cam.fov = 40;
-    cam.lk_from = vec3(278, 278, -800);
-    cam.lk_at = vec3(278, 278, 0);
-    cam.vup = vec3(0, 1, 0);
-
+    cam.lk_from = vec3(0, 0, 12);
     cam.defocus_angle = 0;
 }
 
@@ -300,22 +259,18 @@ int main(int argc, char *argv[]) {
     int select = 0;
 
     if (argc > 1) {
-        for (int i = 1; i < argc; i++) {
+        for (int i = 0; i < argc; i++) {
 
             std::string arg = argv[i];
 
             if (arg.find("-scene=") == 0) {
 
                 int tmp = std::stoi(arg.substr(7));
-                if (tmp >= 0 && tmp < static_cast<int>(scences::CORNELL_SMOKE)+1) {
+                if (tmp >= 0 && tmp < static_cast<int>(scences::CORNELL)+1) {
                     select = tmp;
                 }
             } else if (arg.find("-alias=") == 0) {
                 cam.anti_alias = std::stoi(arg.substr(7)) > 0 ? std::stoi(arg.substr(7)) : default_anti_alias;
-            } else if (arg.find("-width=") == 0) {
-                // cam_settings[(int) camera_settings::IMG_WD] = (void *) (std::stoi(arg.substr(7)) > 200 ? std::stoi(arg.substr(7)) : default_width);
-            } else {
-                std::clog << "Argument " << arg << "does not exist." << std::flush;
             }
         }
     }
@@ -330,7 +285,6 @@ int main(int argc, char *argv[]) {
         case 4: quads(world, cam); break;
         case 5: light(world, cam); break;
         case 6: cornell(world, cam); break;
-        case 7: cornell_smoke(world, cam); break;
         default:
             break;
     }

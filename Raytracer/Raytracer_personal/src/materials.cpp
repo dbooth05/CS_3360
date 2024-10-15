@@ -45,9 +45,3 @@ double dialectric::reflectance(double cos, double ref_idx) {
     r0 = r0 * r0;
     return r0 + (1 - r0) * std::pow((1 - cos), 5);
 }
-
-bool isotropic::scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const {
-    scattered = ray(rec.p, random_unit_vector(), r.time());
-    atten = tex->value(rec.u, rec.v, rec.p);
-    return true;
-}
