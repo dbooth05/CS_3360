@@ -56,7 +56,9 @@ void my_custom_scene(hittable_list &world, camera &cam) {
     shared_ptr<hittable> cloud = make_shared<sphere>(vec3(0, 4, 0), 3, white);
     world.add(make_shared<medium>(cloud, 0.001, color(0.8, 0.8, 0.8)));
 
-    cam.anti_alias = 1000;
+    cam.img_wd = 1900;
+    cam.aspect = 16.0 / 9.0;
+    cam.anti_alias = 100;
     cam.max_depth = 500;
     cam.lk_from = vec3(0, 0, 10);
 

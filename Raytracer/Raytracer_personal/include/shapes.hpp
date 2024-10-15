@@ -63,4 +63,31 @@ class quad : public hittable {
 
 shared_ptr<hittable_list> box(const vec3 &a, const vec3 &b, shared_ptr<material> mat);
 
+// class triangle : public hittable {
+//     public:
+//         triangle(const vec3 &Q, const vec3 &u, const vec3 &v, shared_ptr<material> mat) : Q(Q), u(u), v(v), mat(mat) {
+//             auto n = cross(u, v);
+//             norm = unit_vector(n);
+//             D = dot(norm, Q);
+//             w = n / dot(n, n);
+
+//             set_bounding_box();
+//         }
+
+//         virtual void set_bounding_box();
+
+//         axis_bound_box bounding_box() const override { return bound_box; }
+
+//         bool hit(const ray &r, interval inter, hit_record &rec) const override;
+
+//         virtual bool is_interior(double a, double b, hit_record &rec) const;
+
+//     private:
+//         vec3 Q, u, v, w;
+//         shared_ptr<material> mat;
+//         axis_bound_box bound_box;
+//         vec3 norm;
+//         double D;
+// };
+
 #endif

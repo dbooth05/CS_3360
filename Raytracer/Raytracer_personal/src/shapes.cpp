@@ -91,6 +91,7 @@ bool quad::is_interior(double a, double b, hit_record &rec) const {
 }
 
 shared_ptr<hittable_list> box(const vec3 &a, const vec3 &b, shared_ptr<material> mat) {
+
     auto sides = make_shared<hittable_list>();
 
     auto min = vec3(std::fmin(a.x(), b.x()), std::fmin(a.y(), b.y()), std::fmin(a.z(), b.z()));
@@ -109,3 +110,8 @@ shared_ptr<hittable_list> box(const vec3 &a, const vec3 &b, shared_ptr<material>
 
     return sides;
 }
+
+
+// void triangle::set_bounding_box() {
+
+// }
