@@ -2,6 +2,7 @@
 #define CAMERA_HPP
 
 #include <sstream>
+#include <fstream>
 #include <atomic>
 
 #include "cuda.h"
@@ -49,7 +50,8 @@ class camera {
             
             progress = 0;
 
-            std::cout << "P3\n" << img_wd << " " << img_ht << "\n255\n";
+            std::ofstream file("img.ppm");
+            file << "P3\n" << img_wd << " " << img_ht << "\n255\n";
 
             std::string** output = new std::string*[img_ht];
             for (int i = 0; i < img_ht; i++) {
@@ -67,7 +69,7 @@ class camera {
 
             for (int i = 0; i < img_ht; i++) {
                 for (int j = 0; j < img_wd; j++) {
-                    std::cout << output[i][j];
+                    file << output[i][j];
                 }
             }
         }

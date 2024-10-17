@@ -102,4 +102,19 @@ class diffuse_light : public material {
         shared_ptr<texture> tex;
 };
 
+class isotropic : public material {
+    public:
+        isotropic(const color &albedo) : tex(make_shared<solid_color>(albedo)) {}
+        isotropic(shared_ptr<texture> tex) : tex(tex) {}
+
+        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override {
+            scattered = ray(rec.p, random_unit_vector(), r.time());
+            atten = tex->value(rec.u, rec.v, rec.p);
+            return true;
+        }
+
+    private:
+        shared_ptr<texture> tex;
+};
+
 #endif
