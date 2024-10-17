@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -Wall -std=c++17 -Iinclude -I/usr/local/cuda/include
+CXXFLAGS = -Wall -std=c++17 -Iinclude -Iexternal
 
 TARGET = raytracer
 
@@ -14,11 +14,13 @@ all: $(TARGET)
 
 # Link the object files to create the executable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	@echo "Compiling and Linking Executable"
+	@$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Compile the .cpp files into .o files in the main directory
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo "Compiling $@"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f src/*.o $(TARGET) img.ppm

@@ -12,7 +12,8 @@ enum class scences {
     PERLIN_SPHERE,
     QUADS,
     LIGHT,
-    CORNELL
+    CORNELL,
+    EARTH_SPHERE
 };
 
 enum class camera_settings {
@@ -205,8 +206,17 @@ void cornell(hittable_list &world, camera &cam) {
 
 void earth_sphere(hittable_list &world, camera cam) {
 
+    auto earth_tex = make_shared<image_tex>("earthmap.jpg");
+    auto earth_sur = make_shared<lamber>(earth_tex);
+    auto globe = make_shared<sphere>(vec3(0, 0, 0), 2, earth_sur);
 
+    cam.img_wd = 400;
+    cam.anti_alias = 100;
+    cam.max_depth = 50;
+
+    cam.fov = 20;
     cam.lk_from = vec3(0, 0, 12);
+    cam.lk_at = vec3(0, 0, 0);
     cam.defocus_angle = 0;
 }
 
@@ -266,7 +276,7 @@ int main(int argc, char *argv[]) {
             if (arg.find("-scene=") == 0) {
 
                 int tmp = std::stoi(arg.substr(7));
-                if (tmp >= 0 && tmp < static_cast<int>(scences::CORNELL)+1) {
+                if (tmp >= 0 && tmp < static_cast<int>(scences::EARTH_SPHERE)+1) {
                     select = tmp;
                 }
             } else if (arg.find("-alias=") == 0) {

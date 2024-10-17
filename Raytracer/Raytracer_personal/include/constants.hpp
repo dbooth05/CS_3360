@@ -41,7 +41,7 @@ inline int rand_int(int min, int max) {
 
 // common use src/header files
 #include "color.hpp"
-#include "interval.hpp"
+// #include "interval.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
 #include "shapes.hpp"

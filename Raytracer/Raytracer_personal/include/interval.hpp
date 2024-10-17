@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef INTERVAL_HPP
 #define INTERVAL_HPP
 
@@ -34,7 +36,15 @@ class interval {
         static const interval universe;
 };
 
-interval operator+(const interval &ival, double displace);
-interval operator+(double displace, const interval &ival);
+inline const interval interval::empty = interval(std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
+inline const interval interval::universe = interval(-std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+
+inline interval operator+(const interval &ival, double displace) {
+    return interval(ival.min + displace, ival.max + displace);
+}
+
+inline interval operator+(double displace, const interval &ival) {
+    return ival + displace;
+}
 
 #endif
