@@ -161,31 +161,97 @@ shared_ptr<hittable_list> box(const vec3 &a, const vec3 &b, shared_ptr<material>
     return sides;  
 }
 
-// class triangle : public hittable {
+class vertex {
+    public:
+        vertex() {}
+        vertex(vec3 pos, vec3 norm) : pos(pos), norm(norm) {}
+
+        vec3 pos, norm;
+};
+
+class triangle : public hittable {
+    public:
+        triangle(int a, int b, int c, shared_ptr<std::vector<vertex>> vertices, shared_ptr<material> mat) :
+            a(a), b(b), c(c), vertices(vertices), mat(mat) {
+                const vec3 v1 = vertices->at(a).pos;
+                const vec3 v2 = vertices->at(b).pos;
+                const vec3 v3 = vertices->at(c).pos;
+
+                vec3 e1 = v2 - v1;
+                vec3 e2 = v3 - v1;
+
+                norm = cross(e1, e2);
+            }
+    
+        bool hit(const ray &r, interval inter, hit_record &rec) const override {
+            const float epsilon = 0.0000001;
+
+            vec3 e1, e2, h, s, q, ca, cb, cc;
+            float a, f, u, v;
+
+            ca = vertices->at(a).pos;
+            cb = vertices->at(b).pos;
+            cc = vertices->at(c).pos;
+
+            e1 = cb - ca;
+            e2 = cc - ca;
+
+            h = cross(r.direction(), e2);
+            a = dot(e1, h);
+            if (a > -epsilon && a < epsilon) return false; // parallel
+
+            f = 1.0 / a;
+            s = r.origin() - ca;
+            u = f * dot(s, h);
+            if (u < 0.0 || u > 1.0) return false;
+
+            q = cross(s, e1);
+            v = f * dot(r.direction(), q);
+            if (v < 0.0 || u + v > 1.0) return false;
+
+            float t = f * dot(e2, q);
+            if (t > epsilon && t < 1 / epsilon) {   // ray intersection
+                if (inter.surrounds(t)) {           // object closer than previous
+                    rec.t = t;
+                    rec.p = r.origin() + r.direction() * t;
+                    rec.set_facing(r, norm);
+                    rec.mat = mat;
+                    return true;
+                } else {
+                    return false; // ray intersection behind another object
+                }
+            } else {
+                return false; // line intersection not ray intersection
+            }
+
+        }   
+
+        axis_bound_box bounding_box() const override { return bound_box; } 
+
+        virtual void set_bound_box() {
+            const auto &v0 = vertices->at(a);
+            const auto &v1 = vertices->at(b);
+            const auto &v2 = vertices->at(c);
+
+            float min_x = std::min({v0.pos.x, v1.pos.x, v2.pos.x});
+
+        }
+
+    private:
+        shared_ptr<std::vector<vertex>> vertices;
+        int a, b, c;
+        shared_ptr<material> mat;
+        vec3 norm;
+        axis_bound_box bound_box;
+};
+
+// class mesh : public hittable {
 //     public:
-//         triangle(const vec3 &Q, const vec3 &u, const vec3 &v, shared_ptr<material> mat) : Q(Q), u(u), v(v), mat(mat) {
-//             auto n = cross(u, v);
-//             norm = unit_vector(n);
-//             D = dot(norm, Q);
-//             w = n / dot(n, n);
-
-//             set_bounding_box();
-//         }
-
-//         virtual void set_bounding_box();
-
-//         axis_bound_box bounding_box() const override { return bound_box; }
-
-//         bool hit(const ray &r, interval inter, hit_record &rec) const override;
-
-//         virtual bool is_interior(double a, double b, hit_record &rec) const;
-
+//         mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, shared_ptr<material> mat) {}
+//         virtual bool hit(const ray &r, interval inter, hit_record &rec) const override {}
 //     private:
-//         vec3 Q, u, v, w;
-//         shared_ptr<material> mat;
-//         axis_bound_box bound_box;
-//         vec3 norm;
-//         double D;
+//         std::vector<triangle> triangles;
+//         std::vector<vertex> vertices;
 // };
 
 #endif

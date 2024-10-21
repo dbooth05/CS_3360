@@ -17,6 +17,7 @@ enum class scenes {
     CORNELL_SMOKE,
     EARTH,
     BOOK2_FINAL,
+    TRIANGLE,
     NUM_SCENES
 };
 
@@ -42,26 +43,32 @@ void my_custom_scene(hittable_list &world, camera &cam) {
     auto mirror = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     auto glass = make_shared<dialectric>(1.0 / 1.5);
     auto glass1 = make_shared<dialectric>(1.5);
+    auto light = make_shared<diffuse_light>(color(10, 10, 10));
+    auto white = make_shared<lamber>(color(0.99, 0.99, 0.99));
 
     world.add(make_shared<sphere>(vec3(0, -1001, 0), 1000, mat_grnd));
     world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 1.0, glass1));
     world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 0.5, glass));
     world.add(make_shared<sphere>(vec3( 1.25, 0, 0), 1.0, mirror));
-
+    world.add(make_shared<sphere>(vec3(0, 4, 0), 1.5, light));
 
     auto bg_mat = make_shared<lamber>(color(1.0, 0.0, 0.0));
     for (int i = 0; i < 4; i++) {
         world.add(make_shared<sphere>(vec3(-3 + (i * 2), 0.0, -6), 1.0, bg_mat));
     }
 
+    shared_ptr<hittable> cloud = make_shared<sphere>(vec3(0, 4, 0), 3, white);
+    world.add(make_shared<medium>(cloud, 0.001, color(0.8, 0.8, 0.8)));
 
     cam.img_wd = 1900;
     cam.aspect = 16.0 / 9.0;
-    cam.anti_alias = 100;
+    cam.anti_alias = 1000;
     cam.max_depth = 500;
     cam.lk_from = vec3(0, 0, 10);
 
     cam.defocus_angle = 0;
+
+    cam.bg = color(0, 0, 0);
 }
 
 void bouncing_spheres(hittable_list &world) {
@@ -246,7 +253,7 @@ void cornell_smoke(hittable_list &world, camera &cam) {
     cam.defocus_angle = 0;
 }
 
-void earth(hittable_list &world, camera cam) {
+void earth(hittable_list &world, camera &cam) {
 
     auto earth_tex = make_shared<image_tex>("earthmap.jpg");
     auto earth_sur = make_shared<lamber>(earth_tex);
@@ -264,7 +271,7 @@ void earth(hittable_list &world, camera cam) {
     cam.defocus_angle = 0;
 }
 
-void book2_final(hittable_list &world, camera cam) {
+void book2_final(hittable_list &world, camera &cam) {
     
     hittable_list boxes;
     auto gnd = make_shared<lamber>(color(0.48, 0.83, 0.53));
@@ -318,9 +325,9 @@ void book2_final(hittable_list &world, camera cam) {
     world.add(make_shared<translate>(make_shared<rotate_y>(make_shared<bvh_node>(boxes2), 15), vec3(-100, 270, 395)));
 
     cam.aspect = 1.0;
-    cam.img_wd = 800;
+    cam.img_wd = 100;
     cam.anti_alias = 10;
-    cam.max_depth = 40;
+    cam.max_depth = 20;
     cam.bg = color(0, 0, 0);
 
     cam.fov = 40;
@@ -330,6 +337,20 @@ void book2_final(hittable_list &world, camera cam) {
     cam.defocus_angle = 0;
 }
 
+void triangle_scene(hittable_list &world, camera &cam) {
+
+    std::vector<vertex> verts = {
+        vertex(vec3( 0, 1, 0), vec3(0, 0, 1)),
+        vertex(vec3(1, 0, 0), vec3(0, 0, 1)),
+        vertex(vec3(0, 0, 1), vec3(0, 0, 1))
+    };
+
+    auto grn = make_shared<lamber>(color(0.1, 0.9, 0.1));
+
+    world.add(make_shared<triangle>(0, 1, 2, make_shared<std::vector<vertex>>(verts), grn));
+
+    cam.lk_from = vec3(2, 0, 0);
+}
 
 int main(int argc, char *argv[]) {
 
@@ -377,7 +398,7 @@ int main(int argc, char *argv[]) {
     cam.bg = color(0.70, 0.80, 1.00);
 
 
-    int select = 6;
+    int select = 10;
 
     if (argc > 1) {
         for (int i = 0; i < argc; i++) {
@@ -394,7 +415,6 @@ int main(int argc, char *argv[]) {
 
     std::clog << "option: " << select << std::flush;
 
-    
     switch (select)
     {
         case 0: my_custom_scene(world, cam); break;
@@ -407,6 +427,7 @@ int main(int argc, char *argv[]) {
         case 7: cornell_smoke(world, cam); break;
         case 8: earth(world, cam); break;
         case 9: book2_final(world, cam); break;
+        case 10: triangle_scene(world, cam); break;
         default:my_custom_scene(world, cam); break;
     }
 

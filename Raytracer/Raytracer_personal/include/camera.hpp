@@ -50,6 +50,8 @@ class camera {
             
             progress = 0;
 
+            std::clog << "Image height: " << img_ht << std::flush;
+
             std::ofstream file("img.ppm");
             file << "P3\n" << img_wd << " " << img_ht << "\n255\n";
 

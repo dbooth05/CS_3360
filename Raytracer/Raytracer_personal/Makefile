@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -Wall -std=c++17 -Iinclude -Iexternal
+CXXFLAGS = -Wall -std=c++17 -Iinclude -Iexternal -ggdb
 
 TARGET = raytracer
 
