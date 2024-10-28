@@ -4,6 +4,7 @@
 #include "constants.hpp"
 #include "materials.hpp"
 #include "bvh.hpp"
+#include "mesh_loader.hpp"
 #include "mediums.hpp"
 
 enum class scenes {
@@ -325,8 +326,8 @@ void book2_final(hittable_list &world, camera &cam) {
     world.add(make_shared<translate>(make_shared<rotate_y>(make_shared<bvh_node>(boxes2), 15), vec3(-100, 270, 395)));
 
     cam.aspect = 1.0;
-    cam.img_wd = 100;
-    cam.anti_alias = 10;
+    cam.img_wd = 1000;
+    cam.anti_alias = 10000;
     cam.max_depth = 20;
     cam.bg = color(0, 0, 0);
 
@@ -339,17 +340,46 @@ void book2_final(hittable_list &world, camera &cam) {
 
 void triangle_scene(hittable_list &world, camera &cam) {
 
-    std::vector<vertex> verts = {
-        vertex(vec3( 0, 1, 0), vec3(0, 0, 1)),
-        vertex(vec3(1, 0, 0), vec3(0, 0, 1)),
-        vertex(vec3(0, 0, 1), vec3(0, 0, 1))
-    };
+    auto red = make_shared<lamber>(color(1.0, 0.0, 0.0));
 
-    auto grn = make_shared<lamber>(color(0.1, 0.9, 0.1));
+    world.add(make_shared<triangle>(
+        vec3(0, 1, 0),
+        vec3(-1, 0, 0),
+        vec3(1, 0, 0),
+        red
+    ));
 
-    world.add(make_shared<triangle>(0, 1, 2, make_shared<std::vector<vertex>>(verts), grn));
+    cam.lk_from = vec3(0, 5, -5);
+    cam.lk_at = vec3(0, 0, 0);
+}
 
-    cam.lk_from = vec3(2, 0, 0);
+bool teapot(hittable_list &world, camera &cam) {
+
+    // can be any material type. Could take in a list of files
+    // and a list of materials
+    auto mat = std::make_shared<lamber>(color(0.9, 0.0, 0.0));
+
+    obj_loader loader;
+
+    if (loader.load("teapot.obj", mat)) {
+        std::clog << "loaded " << loader.get_triangles().size() << std::flush;
+    } else {
+        std::cerr << "Failed to load: " << "box.obj" << std::endl;
+        return false;
+    }
+
+    for (const auto &tri : loader.get_triangles()) {
+        world.add(tri);
+    }
+
+    cam.img_wd = 500;
+    cam.anti_alias = 10;
+
+    cam.lk_from = vec3(10, 2, 10);
+    cam.lk_at = vec3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    return true;
 }
 
 int main(int argc, char *argv[]) {
@@ -358,37 +388,16 @@ int main(int argc, char *argv[]) {
 
     hittable_list world;
 
-    // auto mat_grnd = make_shared<lamber>(color(0.8, 0.8, 0.0));
-    // auto mat_cntr = make_shared<lamber>(color(0.1, 0.2, 0.5));
-    // auto mat_left = make_shared<dialectric>(1.50);
-    // auto mat_bubl = make_shared<dialectric>(1.00 / 1.50);
-    // auto mat_rght = make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
-
-    // world.add(make_shared<sphere>(vec3(0.0, -100.5, -1.0), 100.0, mat_grnd));
-    // world.add(make_shared<sphere>(vec3(0.0, 0.0, -1.2), 0.5, mat_cntr));
-    // world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), 0.5, mat_left));
-    // world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), 0.4, mat_bubl));
-    // world.add(make_shared<sphere>(vec3(1.0, 0.0, -1.0), 0.5, mat_rght));
-
-
-    // auto cos_pi = std::cos(pi/4);
-
-    // auto mat_left = make_shared<lamber>(color(0, 0, 1));
-    // auto mat_right = make_shared<lamber>(color(1, 0, 0));
-
-    // world.add(make_shared<sphere>(vec3(-cos_pi, 0, -1), cos_pi, mat_left));
-    // world.add(make_shared<sphere>(vec3(cos_pi, 0, -1), cos_pi, mat_right));
-
     camera cam;
 
     cam.img_wd = 768;
-    // cam.img_wd = 400;
+    cam.img_wd = 400;
     cam.aspect = 16.0 / 9.0;
-    cam.anti_alias = 100;
-    cam.max_depth = 50;
+    cam.anti_alias = 50;
+    cam.max_depth = 10;
 
     cam.fov = 20;
-    cam.lk_from = vec3(13, 2, 3);
+    cam.lk_from = vec3(13, 2, 10);
     cam.lk_at = vec3(0, 0, 0);
     cam.vup = vec3(0, 1, 0);
 
@@ -398,7 +407,7 @@ int main(int argc, char *argv[]) {
     cam.bg = color(0.70, 0.80, 1.00);
 
 
-    int select = 10;
+    int select = 11;
 
     if (argc > 1) {
         for (int i = 0; i < argc; i++) {
@@ -428,10 +437,15 @@ int main(int argc, char *argv[]) {
         case 8: earth(world, cam); break;
         case 9: book2_final(world, cam); break;
         case 10: triangle_scene(world, cam); break;
+        case 11: 
+            if (!teapot(world, cam)) {
+                return false;
+            }
+            break;
         default:my_custom_scene(world, cam); break;
     }
 
-    // world = hittable_list(make_shared<bvh_node>(world));
+    world = hittable_list(make_shared<bvh_node>(world));
 
     cam.render(world);
 

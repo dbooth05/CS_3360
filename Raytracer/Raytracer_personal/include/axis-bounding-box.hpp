@@ -7,9 +7,12 @@
 
 class axis_bound_box {
     public:
+        vec3 min, max;
         interval x, y, z;
 
-        axis_bound_box() {}
+        axis_bound_box() : 
+            min(vec3(std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max())), 
+            max(vec3(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest())) {}
 
         axis_bound_box(const interval &x, const interval &y, const interval &z) : x(x), y(y), z(z) { pad_to_mins(); }
 

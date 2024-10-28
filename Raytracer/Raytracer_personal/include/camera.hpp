@@ -30,6 +30,7 @@ class camera {
         double focus_dist    = 10; // distance from cam to lookfrom point to plane of perfect focus
 
         void render_row(int j, const hittable &world, std::string** row_output) {
+
             for (int i = 0; i < img_wd; i++) {
                 color pix_col(0, 0, 0);
                 for (int k = 0; k < anti_alias; k++) {
@@ -49,8 +50,6 @@ class camera {
             ThreadPool pool(thread::hardware_concurrency());
             
             progress = 0;
-
-            std::clog << "Image height: " << img_ht << std::flush;
 
             std::ofstream file("img.ppm");
             file << "P3\n" << img_wd << " " << img_ht << "\n255\n";

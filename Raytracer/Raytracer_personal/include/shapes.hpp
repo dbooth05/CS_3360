@@ -1,6 +1,8 @@
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
 
+#include <optional>
+
 #include "hittable.hpp"
 #include "vec3.hpp"
 #include "constants.hpp"
@@ -161,97 +163,140 @@ shared_ptr<hittable_list> box(const vec3 &a, const vec3 &b, shared_ptr<material>
     return sides;  
 }
 
-class vertex {
-    public:
-        vertex() {}
-        vertex(vec3 pos, vec3 norm) : pos(pos), norm(norm) {}
-
-        vec3 pos, norm;
-};
-
 class triangle : public hittable {
     public:
-        triangle(int a, int b, int c, shared_ptr<std::vector<vertex>> vertices, shared_ptr<material> mat) :
-            a(a), b(b), c(c), vertices(vertices), mat(mat) {
-                const vec3 v1 = vertices->at(a).pos;
-                const vec3 v2 = vertices->at(b).pos;
-                const vec3 v3 = vertices->at(c).pos;
-
-                vec3 e1 = v2 - v1;
-                vec3 e2 = v3 - v1;
-
-                norm = cross(e1, e2);
-            }
-    
-        bool hit(const ray &r, interval inter, hit_record &rec) const override {
-            const float epsilon = 0.0000001;
-
-            vec3 e1, e2, h, s, q, ca, cb, cc;
-            float a, f, u, v;
-
-            ca = vertices->at(a).pos;
-            cb = vertices->at(b).pos;
-            cc = vertices->at(c).pos;
-
-            e1 = cb - ca;
-            e2 = cc - ca;
-
-            h = cross(r.direction(), e2);
-            a = dot(e1, h);
-            if (a > -epsilon && a < epsilon) return false; // parallel
-
-            f = 1.0 / a;
-            s = r.origin() - ca;
-            u = f * dot(s, h);
-            if (u < 0.0 || u > 1.0) return false;
-
-            q = cross(s, e1);
-            v = f * dot(r.direction(), q);
-            if (v < 0.0 || u + v > 1.0) return false;
-
-            float t = f * dot(e2, q);
-            if (t > epsilon && t < 1 / epsilon) {   // ray intersection
-                if (inter.surrounds(t)) {           // object closer than previous
-                    rec.t = t;
-                    rec.p = r.origin() + r.direction() * t;
-                    rec.set_facing(r, norm);
-                    rec.mat = mat;
-                    return true;
-                } else {
-                    return false; // ray intersection behind another object
-                }
-            } else {
-                return false; // line intersection not ray intersection
-            }
-
-        }   
-
-        axis_bound_box bounding_box() const override { return bound_box; } 
-
-        virtual void set_bound_box() {
-            const auto &v0 = vertices->at(a);
-            const auto &v1 = vertices->at(b);
-            const auto &v2 = vertices->at(c);
-
-            float min_x = std::min({v0.pos.x, v1.pos.x, v2.pos.x});
-
+        triangle(const vec3 &a, const vec3 &b, const vec3 &c, shared_ptr<material> mat) 
+            : v0(a), v1(b), v2(c), mat(mat) {
+                set_bounding_box();
         }
 
+        // triangle(const triangle &t, shared_ptr<material> material) {
+        //     v0 = t.v0;
+        //     v1 = t.v1;
+        //     v2 = t.v2;
+        //     mat = material;
+
+        //     set_bounding_box();
+        // }
+
+        bool hit(const ray &r, interval inter, hit_record &rec) const override {
+            double epsilon = 1e-8;
+            vec3 e1 = v1 - v0;
+            vec3 e2 = v2 - v0;
+
+            vec3 h = cross(r.direction(), e2);
+            double a = dot(e1, h);
+
+            if (a > -epsilon && a < epsilon) return false;
+
+            double f = 1.0 / a;
+            vec3 s = r.origin() - v0;
+            double u = f * dot(s, h);
+            if (u < 0.0 || u > 1.0) return false;
+
+            vec3 q = cross(s, e1);
+            double v = f * dot(r.direction(), q);
+            if (v < 0.0 || u + v > 1.0) return false;
+
+            double t = f * dot(e2, q);
+            if (t < inter.min || t > inter.max) return false;
+
+            rec.t = t;
+            rec.p = r.origin() + r.direction() * t;
+            vec3 norm = cross(e1, e2);
+            rec.set_facing(r, norm);
+            rec.mat = mat;
+
+            return true;          
+        }
+
+        virtual void set_bounding_box() {
+            auto min = vec3(
+                std::min(v0.x(), std::min(v1.x(), v2.x())),
+                std::min(v0.y(), std::min(v1.y(), v2.y())),
+                std::min(v0.z(), std::min(v1.z(), v2.z()))
+            );
+
+            auto max = vec3(
+                std::max(v0.x(), std::max(v1.x(), v2.x())),
+                std::max(v0.y(), std::max(v1.y(), v2.y())),
+                std::max(v0.z(), std::max(v1.z(), v2.z()))
+            );
+
+            bound_box = axis_bound_box(min, max);
+        }
+
+        axis_bound_box bounding_box() const override {
+            return bound_box;
+        }
+
+        vec3 v0, v1, v2;
+
     private:
-        shared_ptr<std::vector<vertex>> vertices;
-        int a, b, c;
         shared_ptr<material> mat;
-        vec3 norm;
         axis_bound_box bound_box;
 };
 
-// class mesh : public hittable {
-//     public:
-//         mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, shared_ptr<material> mat) {}
-//         virtual bool hit(const ray &r, interval inter, hit_record &rec) const override {}
-//     private:
-//         std::vector<triangle> triangles;
-//         std::vector<vertex> vertices;
-// };
+class triangle_mesh : public hittable {
+public:
+    triangle_mesh(const std::vector<triangle>& triangles, std::shared_ptr<material> mat) 
+        : triangles(triangles), mat(mat) {
+        set_bounding_box();
+    }
+
+    bool hit(const ray &r, interval inter, hit_record &rec) const override {
+        bool hit_anything = false;
+        hit_record temp_rec;
+        double closest_so_far = inter.max;
+
+        for (const auto& triangle : triangles) {
+            if (triangle.hit(r, interval(inter.min, closest_so_far), temp_rec)) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec; // Store the closest hit record
+            }
+        }
+        return hit_anything;
+    }
+
+    axis_bound_box bounding_box() const override {
+        return bound_box;
+    }
+
+    private:
+        std::vector<triangle> triangles;  // Store triangles
+        axis_bound_box bound_box;          // Bounding box for the entire mesh
+        std::shared_ptr<material> mat;     // Material for the mesh
+
+        void set_bounding_box() {
+            // Initialize min and max to extreme values
+            vec3 min(std::numeric_limits<double>::max(),
+                    std::numeric_limits<double>::max(),
+                    std::numeric_limits<double>::max());
+
+            vec3 max(std::numeric_limits<double>::lowest(),
+                    std::numeric_limits<double>::lowest(),
+                    std::numeric_limits<double>::lowest());
+
+            for (const auto& triangle : triangles) {
+                auto tri_bbox = triangle.bounding_box();
+                min = vec3(
+                    std::min(min.x(), tri_bbox.min.x()),
+                    std::min(min.y(), tri_bbox.min.y()),
+                    std::min(min.z(), tri_bbox.min.z())
+                );
+
+                max = vec3(
+                    std::max(max.x(), tri_bbox.max.x()),
+                    std::max(max.y(), tri_bbox.max.y()),
+                    std::max(max.z(), tri_bbox.max.z())
+                );
+            }
+
+            bound_box = axis_bound_box(min, max);
+        }
+};
+
+
 
 #endif
