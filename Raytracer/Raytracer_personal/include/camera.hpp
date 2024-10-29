@@ -5,9 +5,6 @@
 #include <fstream>
 #include <atomic>
 
-#include "cuda.h"
-#include "device_launch_parameters.h"
-
 #include "constants.hpp"
 #include "hittable.hpp"
 #include "materials.hpp"

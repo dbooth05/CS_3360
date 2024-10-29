@@ -205,7 +205,7 @@ void cornell_box(hittable_list &world, camera &cam) {
     cam.aspect = 1.0;
     cam.img_wd = 600;
     cam.anti_alias = 100;
-    cam.max_depth = 50;
+    cam.max_depth = 5;
     cam.bg = color(0,0,0);
 
     cam.fov = 40;
@@ -361,8 +361,8 @@ bool teapot(hittable_list &world, camera &cam) {
 
     obj_loader loader;
 
-    if (loader.load("teapot.obj", mat)) {
-        std::clog << "loaded " << loader.get_triangles().size() << std::flush;
+    if (loader.load("./objects/teapot_no_plane.obj", mat)) {
+        std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
     } else {
         std::cerr << "Failed to load: " << "box.obj" << std::endl;
         return false;
@@ -372,12 +372,42 @@ bool teapot(hittable_list &world, camera &cam) {
         world.add(tri);
     }
 
-    cam.img_wd = 500;
-    cam.anti_alias = 10;
+    // add light to scene
+    auto diff_light = make_shared<diffuse_light>(color(4, 4, 4));
+    world.add(make_shared<quad>(vec3(-2, 1, -3.75), vec3(5, 0, 0), vec3(0, 2, 0), diff_light));   
 
-    cam.lk_from = vec3(10, 2, 10);
-    cam.lk_at = vec3(0, 0, 0);
+    // auto mirror = make_shared<metal>(color(0.5, 0.5, 0.5), 0.0);
+    // auto glass = make_shared<dialectric>(1.5);
+    // auto g1 = make_shared<dialectric>(1.0);
+    // world.add(make_shared<sphere>(vec3(-7, 1, 2), 3, glass)); 
+    // world.add(make_shared<sphere>(vec3(-7, 1, 2), 2.5, g1));
+
+    // The containing box
+    // Floor:
+    auto gnd = make_shared<metal>(color(1.0, 0.3, 0.3), 0.75);    
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 0, 15), gnd));
+    // Ceiling:
+    auto ceil = make_shared<metal>(color(1.0, 0.3, 0.3), 0.9);
+    world.add(make_shared<quad>(vec3(-4, 10, -4), vec3(16, 0, 0), vec3(0, 0, 15), ceil));
+    // Back wall
+    auto walls = make_shared<lamber>(color(0.098, 0.0, 0.2));
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 10, 0), walls));
+    // front wall
+    world.add(make_shared<quad>(vec3(-4, 0, 11), vec3(16, 0, 0), vec3(0, 10, 0), walls));
+    // left wall
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(0, 10, 0), vec3(0, 0, 15), walls));
+    // right wall
+    world.add(make_shared<quad>(vec3(12, 0, -4), vec3(0, 10, 0), vec3(0, 0, 15), walls));
+
+    cam.img_wd = 900;
+    cam.anti_alias = 1000;
+    cam.max_depth = 100;
+
+    cam.lk_from = vec3(11, 5, 10); // +: right  +: up   +: left?
+    cam.lk_at = vec3(0, 1.5, 0); // teapot centered
     cam.vup = vec3(0, 1, 0);
+
+    cam.bg = color(0.0, 0.0, 0.0);
 
     return true;
 }
@@ -397,15 +427,14 @@ int main(int argc, char *argv[]) {
     cam.max_depth = 10;
 
     cam.fov = 20;
-    cam.lk_from = vec3(13, 2, 10);
-    cam.lk_at = vec3(0, 0, 0);
-    cam.vup = vec3(0, 1, 0);
+    cam.lk_from = vec3(13, 10, 10);
+    cam.lk_at = vec3(0, 10, 0);
+    cam.vup = vec3(0, 5, 0);
 
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
 
     cam.bg = color(0.70, 0.80, 1.00);
-
 
     int select = 11;
 
@@ -422,7 +451,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::clog << "option: " << select << std::flush;
+    std::clog << "option: " << select << "\n" << std::flush;
 
     switch (select)
     {

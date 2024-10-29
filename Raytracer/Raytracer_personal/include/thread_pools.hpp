@@ -55,7 +55,7 @@ public:
                     task();
 
                     active_tasks--;
-                    std::clog << "\rProgress: " << active_tasks << "                " << std::flush;
+                    std::clog << "\rProgress: " << max_tasks - active_tasks << "/" << max_tasks << "            " << std::flush;
                     if (active_tasks <= 0) {
                         done.notify_all();
                         std::clog << "\nDone.                           " << std::flush;
@@ -96,6 +96,7 @@ public:
             unique_lock<std::mutex> lock(queue_mutex_);
             tasks_.emplace(move(task));
             active_tasks++;
+            max_tasks++;
         }
         cv_.notify_one();
     }
@@ -118,6 +119,7 @@ private:
     condition_variable done;
 
     int active_tasks = 0;
+    int max_tasks;
 
     // Flag to indicate whether the thread pool should stop
     // or not
