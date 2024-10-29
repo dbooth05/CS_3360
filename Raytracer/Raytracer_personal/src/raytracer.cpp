@@ -361,7 +361,7 @@ bool teapot(hittable_list &world, camera &cam) {
 
     obj_loader loader;
 
-    if (loader.load("./objects/teapot_no_plane.obj", mat)) {
+    if (loader.load("./created_objs/teapot_no_plane.obj", mat)) {
         std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
     } else {
         std::cerr << "Failed to load: " << "box.obj" << std::endl;
