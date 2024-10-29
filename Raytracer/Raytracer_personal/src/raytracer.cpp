@@ -172,7 +172,7 @@ void light(hittable_list &world, camera &cam) {
 
     cam.defocus_angle = 0;
 
-    cam.anti_alias = 200;
+    cam.anti_alias = 500;
     cam.max_depth = 250;
 
     cam.bg = color(0, 0, 0);

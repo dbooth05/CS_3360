@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -Wall -std=c++17 -Iinclude -Iexternal -ggdb
+CXXFLAGS = -Wall -Werror -std=c++17 -Iinclude -Iexternal -ggdb
 
 TARGET = raytracer
 
@@ -15,7 +15,7 @@ all: $(TARGET)
 # Link the object files to create the executable
 $(TARGET): $(OBJS)
 	@echo "Compiling and Linking Executable"
-	@$(CXX) $(CXXFLAGS) -o $@ $^ -lassimp
+	@$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Compile the .cpp files into .o files in the main directory
 %.o: %.cpp
