@@ -172,7 +172,7 @@ void light(hittable_list &world, camera &cam) {
 
     cam.defocus_angle = 0;
 
-    cam.anti_alias = 200;
+    cam.anti_alias = 500;
     cam.max_depth = 250;
 
     cam.bg = color(0, 0, 0);
@@ -361,7 +361,7 @@ bool teapot(hittable_list &world, camera &cam) {
 
     obj_loader loader;
 
-    if (loader.load("./objects/teapot_no_plane.obj", mat)) {
+    if (loader.load("./created_objs/teapot_no_plane.obj", mat)) {
         std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
     } else {
         std::cerr << "Failed to load: " << "box.obj" << std::endl;
@@ -373,36 +373,35 @@ bool teapot(hittable_list &world, camera &cam) {
     }
 
     // add light to scene
-    auto diff_light = make_shared<diffuse_light>(color(8, 8, 8));
+    auto diff_light = make_shared<diffuse_light>(color(4, 4, 4));
     world.add(make_shared<quad>(vec3(-2, 1, -3.75), vec3(5, 0, 0), vec3(0, 2, 0), diff_light));   
 
-    auto mirror = make_shared<metal>(color(0.5, 0.5, 0.5), 0.0);
-    auto glass = make_shared<dialectric>(1.0 / 1.5);
-    auto g1 = make_shared<dialectric>(1.5);
-    world.add(make_shared<sphere>(vec3(-4, 2, 2), 1.5, glass)); 
-    world.add(make_shared<sphere>(vec3(-4, 2, 2), 2, g1));
-    world.add(make_shared<sphere>(vec3(-4, 2, 2), 0.5, diff_light));
+    // auto mirror = make_shared<metal>(color(0.5, 0.5, 0.5), 0.0);
+    // auto glass = make_shared<dialectric>(1.5);
+    // auto g1 = make_shared<dialectric>(1.0);
+    // world.add(make_shared<sphere>(vec3(-7, 1, 2), 3, glass)); 
+    // world.add(make_shared<sphere>(vec3(-7, 1, 2), 2.5, g1));
 
     // The containing box
     // Floor:
     auto gnd = make_shared<metal>(color(1.0, 0.3, 0.3), 0.75);    
-    world.add(make_shared<quad>(vec3(-6, 0, -4), vec3(18, 0, 0), vec3(0, 0, 15), gnd));
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 0, 15), gnd));
     // Ceiling:
     auto ceil = make_shared<metal>(color(1.0, 0.3, 0.3), 0.9);
-    world.add(make_shared<quad>(vec3(-6, 10, -4), vec3(18, 0, 0), vec3(0, 0, 15), ceil));
+    world.add(make_shared<quad>(vec3(-4, 10, -4), vec3(16, 0, 0), vec3(0, 0, 15), ceil));
     // Back wall
     auto walls = make_shared<lamber>(color(0.098, 0.0, 0.2));
-    world.add(make_shared<quad>(vec3(-6, 0, -4), vec3(18, 0, 0), vec3(0, 10, 0), walls));
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 10, 0), walls));
     // front wall
-    world.add(make_shared<quad>(vec3(-6, 0, 11), vec3(18, 0, 0), vec3(0, 10, 0), walls));
+    world.add(make_shared<quad>(vec3(-4, 0, 11), vec3(16, 0, 0), vec3(0, 10, 0), walls));
     // left wall
-    world.add(make_shared<quad>(vec3(-6, 0, -4), vec3(0, 10, 0), vec3(0, 0, 15), walls));
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(0, 10, 0), vec3(0, 0, 15), walls));
     // right wall
     world.add(make_shared<quad>(vec3(12, 0, -4), vec3(0, 10, 0), vec3(0, 0, 15), walls));
 
     cam.img_wd = 900;
-    cam.anti_alias = 2500;
-    cam.max_depth = 250;
+    cam.anti_alias = 1000;
+    cam.max_depth = 100;
 
     cam.lk_from = vec3(11, 5, 10); // +: right  +: up   +: left?
     cam.lk_at = vec3(0, 1.5, 0); // teapot centered

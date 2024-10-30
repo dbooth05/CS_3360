@@ -31,8 +31,6 @@ class obj_loader {
                     vertices.push_back(vertex);
                 } else if (prefix == "f") {
                     double v0, v1, v2;
-                    // char slash;
-                    // iss >> v0 >> slash >> v1 >> slash >> v2;
                     iss >> v0 >> v1 >> v2;
                     faces.push_back(std::make_shared<triangle>(
                         vertices[v0-1], vertices[v1-1], vertices[v2-1], mat));

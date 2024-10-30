@@ -46,8 +46,6 @@ class camera {
 
             ThreadPool pool(thread::hardware_concurrency());
             
-            progress = 0;
-
             std::ofstream file("img.ppm");
             file << "P3\n" << img_wd << " " << img_ht << "\n255\n";
 

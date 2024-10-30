@@ -170,15 +170,6 @@ class triangle : public hittable {
                 set_bounding_box();
         }
 
-        // triangle(const triangle &t, shared_ptr<material> material) {
-        //     v0 = t.v0;
-        //     v1 = t.v1;
-        //     v2 = t.v2;
-        //     mat = material;
-
-        //     set_bounding_box();
-        // }
-
         bool hit(const ray &r, interval inter, hit_record &rec) const override {
             double epsilon = 1e-8;
             vec3 e1 = v1 - v0;
