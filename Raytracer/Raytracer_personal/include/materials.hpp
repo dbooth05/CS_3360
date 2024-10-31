@@ -16,6 +16,10 @@ class material {
         ) const {
             return false;
         }
+
+        virtual double scattering_pdf(const ray &r, const hit_record &rec, const ray &scattered) const {
+            return 0;
+        }
 };
 
 class lamber : public material {
@@ -33,6 +37,11 @@ class lamber : public material {
             scattered = ray(rec.p, scatter_dir, r.time());
             atten = tex->value(rec.u, rec.v, rec.p);
             return true;
+        }
+
+        double scattering_pdf(const ray &r, const hit_record &rec, const ray& scattered) const override {
+            auto cos_theta = dot(rec.norm, unit_vector(scattered.direction()));
+            return cos_theta < 0 ? 0 : cos_theta / pi;
         }
 
     private:

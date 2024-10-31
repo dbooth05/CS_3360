@@ -204,8 +204,8 @@ void cornell_box(hittable_list &world, camera &cam) {
 
     cam.aspect = 1.0;
     cam.img_wd = 600;
-    cam.anti_alias = 100;
-    cam.max_depth = 5;
+    cam.anti_alias = 1000;
+    cam.max_depth = 50;
     cam.bg = color(0,0,0);
 
     cam.fov = 40;

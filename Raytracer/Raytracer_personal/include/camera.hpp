@@ -30,9 +30,11 @@ class camera {
 
             for (int i = 0; i < img_wd; i++) {
                 color pix_col(0, 0, 0);
-                for (int k = 0; k < anti_alias; k++) {
-                    ray r = get_ray(i, j);
-                    pix_col += ray_color(r, max_depth, world);
+                for (int k = 0; k < sqrt_spp; k++) {
+                    for (int s = 0; s < sqrt_spp; s++) {
+                        ray r = get_ray(i, j, k, s);
+                        pix_col += ray_color(r, max_depth, world);
+                    }
                 }
 
                 color out_col = pix_col * anti_alias_scale;
@@ -87,7 +89,12 @@ class camera {
                 return col_from_emission;
             }
 
-            color col_from_scatter = atten * ray_color(scattered, depth - 1, world);
+            double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
+            double pdf_val = scattering_pdf;
+
+            color col_from_scatter = (atten * scattering_pdf * ray_color(scattered, depth - 1, world)) / pdf_val;
+
+            // color col_from_scatter = atten * ray_color(scattered, depth - 1, world);
 
             return col_from_emission + col_from_scatter;
         }
@@ -95,6 +102,9 @@ class camera {
     private:
         double anti_alias_scale;
         int img_ht;
+
+        int sqrt_spp;           // square root of number of samples per pixel
+        double recip_sqrt_spp;  // 1 / sqrt_spp
 
         int progress = 0;
 
@@ -109,7 +119,9 @@ class camera {
             
             img_ht = int(img_wd / aspect) < 1 ? 1 : int(img_wd / aspect);
 
-            anti_alias_scale = 1.0 / anti_alias;
+            sqrt_spp = int(std::sqrt(anti_alias));
+            anti_alias_scale = 1.0 / (sqrt_spp * sqrt_spp);
+            recip_sqrt_spp = 1.0 / sqrt_spp;
 
             center = lk_from;
 
@@ -143,8 +155,8 @@ class camera {
             defocus_v = v * defocus_rad;
         }
 
-        ray get_ray(int i, int j) const {
-            auto offset = sample_sqr();
+        ray get_ray(int i, int j, int s_i, int s_j) const {
+            auto offset = sample_sqr_stratified(s_i, s_j);
             auto pix_sample = pix_loc
                         + ((i + offset.x()) * pix_delt_u)
                         + ((j + offset.y()) * pix_delt_v);
@@ -154,6 +166,13 @@ class camera {
             auto r_time = random_double();
 
             return ray(ray_orig, ray_dir, r_time);
+        }
+
+        vec3 sample_sqr_stratified(int s_i, int s_j) const {
+            auto px = ((s_i + rand_double()) * recip_sqrt_spp) - 0.5;
+            auto py = ((s_j + rand_double()) * recip_sqrt_spp) - 0.5;
+
+            return vec3(px, py, 0);
         }
 
         vec3 sample_sqr() const {
