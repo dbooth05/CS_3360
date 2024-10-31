@@ -436,7 +436,7 @@ int main(int argc, char *argv[]) {
 
     cam.bg = color(0.70, 0.80, 1.00);
 
-    int select = 11;
+    int select = 6;
 
     if (argc > 1) {
         for (int i = 0; i < argc; i++) {
