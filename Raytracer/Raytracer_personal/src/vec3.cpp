@@ -84,3 +84,15 @@ vec3 refract(const vec3 &v, const vec3 &n, double t) {
     vec3 r_para = -std::sqrt(std::fabs(1.0 - r_perp.len_sqrd())) * n;
     return r_perp + r_para;
 }
+
+vec3 random_cos_dir() {
+    auto r1 = random_double();
+    auto r2 = random_double();
+
+    auto phi = 2 * pi_vec3 * r1;
+    auto x = std::cos(phi) * std::sqrt(r2);
+    auto y = std::sin(phi) * std::sqrt(r2);
+    auto z = std::sqrt(1 - r2);
+
+    return vec3(x, y, z);
+}

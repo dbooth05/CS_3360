@@ -7,6 +7,8 @@
 #include <cmath>
 #include <cstdlib>
 
+const double pi_vec3 = 3.14159265;
+
 inline double random_double() {
     return std::rand() / (RAND_MAX + 1.0);
 }
@@ -84,6 +86,7 @@ vec3 random_unit_vector();
 vec3 random_on_hemisphere(const vec3& normal);
 vec3 reflect(const vec3& v, const vec3& n);
 vec3 refract(const vec3& uv, const vec3& n, double t);
+vec3 random_cos_dir();
 
 
 #endif

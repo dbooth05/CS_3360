@@ -83,14 +83,15 @@ class camera {
 
             ray scattered;
             color atten;
+            double pdf_val;
             color col_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
 
-            if (!rec.mat->scatter(r, rec, atten, scattered)) {
+            if (!rec.mat->scatter(r, rec, atten, scattered, pdf_val)) {
                 return col_from_emission;
             }
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-            double pdf_val = scattering_pdf;
+            pdf_val = scattering_pdf;
 
             color col_from_scatter = (atten * scattering_pdf * ray_color(scattered, depth - 1, world)) / pdf_val;
 
