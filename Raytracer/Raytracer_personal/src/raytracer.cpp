@@ -361,7 +361,7 @@ bool teapot(hittable_list &world, camera &cam) {
 
     obj_loader loader;
 
-    if (loader.load("./created_objs/teapot_no_plane.obj", mat)) {
+    if (loader.load("./objects/teapot_no_plane.obj", mat)) {
         std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
     } else {
         std::cerr << "Failed to load: " << "box.obj" << std::endl;
@@ -400,7 +400,7 @@ bool teapot(hittable_list &world, camera &cam) {
     world.add(make_shared<quad>(vec3(12, 0, -4), vec3(0, 10, 0), vec3(0, 0, 15), walls));
 
     cam.img_wd = 900;
-    cam.anti_alias = 1000;
+    cam.anti_alias = 500;
     cam.max_depth = 100;
 
     cam.lk_from = vec3(11, 5, 10); // +: right  +: up   +: left?

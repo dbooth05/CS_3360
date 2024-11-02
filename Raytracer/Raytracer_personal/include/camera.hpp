@@ -5,6 +5,7 @@
 #include <fstream>
 #include <atomic>
 
+#include "pdf.hpp"
 #include "constants.hpp"
 #include "hittable.hpp"
 #include "materials.hpp"
@@ -84,18 +85,19 @@ class camera {
             ray scattered;
             color atten;
             double pdf_val;
-            color col_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+            color col_from_emission = rec.mat->emitted(r, rec, rec.u, rec.v, rec.p);
 
             if (!rec.mat->scatter(r, rec, atten, scattered, pdf_val)) {
                 return col_from_emission;
             }
 
+            cos_pdf surface_pdf(rec.norm);
+            scattered = ray(rec.p, surface_pdf.generate(), r.time());
+            pdf_val = surface_pdf.value(scattered.direction());
+
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-            pdf_val = scattering_pdf;
 
             color col_from_scatter = (atten * scattering_pdf * ray_color(scattered, depth - 1, world)) / pdf_val;
-
-            // color col_from_scatter = atten * ray_color(scattered, depth - 1, world);
 
             return col_from_emission + col_from_scatter;
         }
