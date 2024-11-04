@@ -27,14 +27,14 @@ class camera {
         double defocus_angle = 0;  // variation angle of rays through each pixel
         double focus_dist    = 10; // distance from cam to lookfrom point to plane of perfect focus
 
-        void render_row(int j, const hittable &world, std::string** row_output) {
+        void render_row(int j, const hittable &world, const hittable &lights, std::string** row_output) {
 
             for (int i = 0; i < img_wd; i++) {
                 color pix_col(0, 0, 0);
                 for (int k = 0; k < sqrt_spp; k++) {
                     for (int s = 0; s < sqrt_spp; s++) {
                         ray r = get_ray(i, j, k, s);
-                        pix_col += ray_color(r, max_depth, world);
+                        pix_col += ray_color(r, max_depth, world, lights);
                     }
                 }
 
@@ -43,7 +43,7 @@ class camera {
             }
         }
 
-        void render(const hittable &world) {
+        void render(const hittable &world, const hittable &lights) {
 
             init();
 
@@ -59,8 +59,8 @@ class camera {
 
             for (int j = 0; j < img_ht; j++) {
                 int row = j;
-                pool.enqueue(([this, &world, output, row]() {
-                    render_row(row, world, output);
+                pool.enqueue(([this, &world, &lights, output, row]() {
+                    render_row(row, world, lights, output);
                 }));
             }
 
@@ -73,7 +73,7 @@ class camera {
             }
         }
 
-        color ray_color(const ray &r, int depth, const hittable &world) {
+        color ray_color(const ray &r, int depth, const hittable &world, const hittable &lights) {
             if (depth <= 0) { return color(0, 0, 0); }
 
             hit_record rec;
@@ -91,13 +91,17 @@ class camera {
                 return col_from_emission;
             }
 
-            cos_pdf surface_pdf(rec.norm);
-            scattered = ray(rec.p, surface_pdf.generate(), r.time());
-            pdf_val = surface_pdf.value(scattered.direction());
+            auto p0 = make_shared<hittable_pdf>(lights, rec.p);
+            auto p1 = make_shared<cos_pdf>(rec.norm);
+            mix_pdf mixed(p0, p1);
+
+            scattered = ray(rec.p, mixed.generate(), r.time());
+            pdf_val = mixed.value(scattered.direction());
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
 
-            color col_from_scatter = (atten * scattering_pdf * ray_color(scattered, depth - 1, world)) / pdf_val;
+            color sample_col = ray_color(scattered, depth-1, world, lights);
+            color col_from_scatter = (atten * scattering_pdf * sample_col) / pdf_val;
 
             return col_from_emission + col_from_scatter;
         }

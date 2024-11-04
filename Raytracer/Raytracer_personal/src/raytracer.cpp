@@ -202,9 +202,14 @@ void cornell_box(hittable_list &world, camera &cam) {
     b2 = make_shared<translate>(b2, vec3(130, 0, 65));
     world.add(b2);
 
+    auto emt = shared_ptr<material>();
+    // hittable_list lights;
+    quad lights(vec3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), emt);
+    // lights.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), emt));
+
     cam.aspect = 1.0;
     cam.img_wd = 600;
-    cam.anti_alias = 1000;
+    cam.anti_alias = 10;
     cam.max_depth = 50;
     cam.bg = color(0,0,0);
 
@@ -214,6 +219,11 @@ void cornell_box(hittable_list &world, camera &cam) {
     cam.vup = vec3(0,1,0);
 
     cam.defocus_angle = 0;
+
+    world = hittable_list(make_shared<bvh_node>(world));
+    // lights = hittable_list(make_shared<bvh_node>(lights));
+
+    cam.render(world, lights);
 }
 
 void cornell_smoke(hittable_list &world, camera &cam) {
@@ -353,7 +363,7 @@ void triangle_scene(hittable_list &world, camera &cam) {
     cam.lk_at = vec3(0, 0, 0);
 }
 
-bool teapot(hittable_list &world, camera &cam) {
+void teapot(hittable_list &world, camera &cam) {
 
     // can be any material type. Could take in a list of files
     // and a list of materials
@@ -365,7 +375,7 @@ bool teapot(hittable_list &world, camera &cam) {
         std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
     } else {
         std::cerr << "Failed to load: " << "box.obj" << std::endl;
-        return false;
+        return;
     }
 
     for (const auto &tri : loader.get_triangles()) {
@@ -374,7 +384,9 @@ bool teapot(hittable_list &world, camera &cam) {
 
     // add light to scene
     auto diff_light = make_shared<diffuse_light>(color(4, 4, 4));
-    world.add(make_shared<quad>(vec3(-2, 1, -3.75), vec3(5, 0, 0), vec3(0, 2, 0), diff_light));   
+    world.add(make_shared<quad>(vec3(-2, 1, -3.75), vec3(5, 0, 0), vec3(0, 2, 0), diff_light)); 
+    auto emt = shared_ptr<material>();  
+    // quad lights (vec3(-2, 1, -0375), vec3(5, 0, 0), vec3(0, 2, 0), diff_light);
 
     // auto mirror = make_shared<metal>(color(0.5, 0.5, 0.5), 0.0);
     // auto glass = make_shared<dialectric>(1.5);
@@ -384,11 +396,16 @@ bool teapot(hittable_list &world, camera &cam) {
 
     // The containing box
     // Floor:
-    auto gnd = make_shared<metal>(color(1.0, 0.3, 0.3), 0.75);    
-    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 0, 15), gnd));
+    auto gnd = make_shared<metal>(color(1.0, 0.3, 0.3), 0.1);    
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 0, 15), diff_light));
+    quad lights(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 0, 15), emt);
     // Ceiling:
     auto ceil = make_shared<metal>(color(1.0, 0.3, 0.3), 0.9);
     world.add(make_shared<quad>(vec3(-4, 10, -4), vec3(16, 0, 0), vec3(0, 0, 15), ceil));
+    // ceiling light;
+    world.add(make_shared<quad>(vec3(-4, 5, -4), vec3(8, 0, 0), vec3(0, 0, 8), diff_light));
+    // quad lights(vec3(-4, 5.1, -4), vec3(8, 0, 0), vec3(0, 0, 8), emt);
+
     // Back wall
     auto walls = make_shared<lamber>(color(0.098, 0.0, 0.2));
     world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(16, 0, 0), vec3(0, 10, 0), walls));
@@ -399,17 +416,19 @@ bool teapot(hittable_list &world, camera &cam) {
     // right wall
     world.add(make_shared<quad>(vec3(12, 0, -4), vec3(0, 10, 0), vec3(0, 0, 15), walls));
 
-    cam.img_wd = 900;
-    cam.anti_alias = 500;
-    cam.max_depth = 100;
+    cam.img_wd = 600;
+    cam.anti_alias = 10;
+    cam.max_depth = 10;
 
-    cam.lk_from = vec3(11, 5, 10); // +: right  +: up   +: left?
+    cam.lk_from = vec3(11, 5, 10); // +: right  +: up   +: left? opposite light
+    // cam.lk_from = vec3(11, 5, -4);
     cam.lk_at = vec3(0, 1.5, 0); // teapot centered
     cam.vup = vec3(0, 1, 0);
 
     cam.bg = color(0.0, 0.0, 0.0);
 
-    return true;
+    world = hittable_list(make_shared<bvh_node>(world));
+    cam.render(world, lights);
 }
 
 int main(int argc, char *argv[]) {
@@ -436,7 +455,7 @@ int main(int argc, char *argv[]) {
 
     cam.bg = color(0.70, 0.80, 1.00);
 
-    int select = 6;
+    int select = 11;
 
     if (argc > 1) {
         for (int i = 0; i < argc; i++) {
@@ -466,17 +485,15 @@ int main(int argc, char *argv[]) {
         case 8: earth(world, cam); break;
         case 9: book2_final(world, cam); break;
         case 10: triangle_scene(world, cam); break;
-        case 11: 
-            if (!teapot(world, cam)) {
-                return false;
-            }
-            break;
+        case 11: teapot(world, cam); break;
         default:my_custom_scene(world, cam); break;
     }
 
     world = hittable_list(make_shared<bvh_node>(world));
 
-    cam.render(world);
+    // cam.render(world);
+
+    // cam.render(world, lights);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::minutes>(end - start);

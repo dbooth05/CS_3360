@@ -3,6 +3,7 @@
 
 #include "vec3.hpp"
 #include "onb.hpp"
+#include "hittable.hpp"
 
 class pdf {
     public:
@@ -40,6 +41,43 @@ class cos_pdf : public pdf {
 
     private:
         onb uvw;
+};
+
+class hittable_pdf : public pdf {
+    public:
+        hittable_pdf(const hittable &objs, const vec3 &orig) : objs(objs), orig(orig) {}
+
+        double value(const vec3 &dir) const override {
+            return objs.pdf_value(orig, dir);
+        }
+
+        vec3 generate() const override {
+            return objs.random(orig);
+        }
+
+    private:
+        const hittable &objs;
+        vec3 orig;
+};
+
+class mix_pdf : public pdf {
+    public:
+        mix_pdf(shared_ptr<pdf> p0, shared_ptr<pdf> p1) {
+            p[0] = p0;
+            p[1] = p1;
+        }
+
+        double value(const vec3& dir) const override {
+            return 0.5 * p[0]->value(dir) + 0.5 * p[1]->value(dir);
+        }
+
+        vec3 generate() const override {
+            if (random_double() < 0.5) return p[0]->generate();
+            else return p[1]->generate();
+        }
+
+    private:
+        shared_ptr<pdf> p[2];
 };
 
 #endif

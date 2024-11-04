@@ -43,6 +43,14 @@ class hittable {
         virtual bool hit(const ray &r, interval inter, hit_record &rec) const = 0;
 
         virtual axis_bound_box bounding_box() const = 0;
+
+        virtual double pdf_value(const vec3 &orig, const vec3 &dir) const {
+            return 0.0;
+        }
+
+        virtual vec3 random(const vec3 &orig) const {
+            return vec3(1, 0, 0);
+        }
 };
 
 class translate : public hittable {
@@ -78,8 +86,8 @@ class rotate_y : public hittable {
 
             bound_box = obj->bounding_box();
 
-            vec3 min(inf, inf, inf);
-            vec3 max(-inf, -inf, -inf);
+            vec3 min(h_inf, h_inf, h_inf);
+            vec3 max(-h_inf, -h_inf, -h_inf);
 
             for (int i = 0; i < 2; i++) {
                 for (int j = 0; j < 2; j++) {
