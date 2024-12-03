@@ -12,8 +12,18 @@ class material {
             return color(0, 0, 0);
         }
 
+        virtual color emitted(double u, double v, const vec3 &p) const {
+            return color(0, 0, 0);
+        }
+
         virtual bool scatter(
             const ray &r_in, const hit_record& rec, color &attenuation, ray &scattered, double &pdf
+        ) const {
+            return false;
+        }
+
+        virtual bool scatter(
+            const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered
         ) const {
             return false;
         }
@@ -45,6 +55,18 @@ class lamber : public material {
             return cos_theta < 0 ? 0 : cos_theta / pi;
         }
 
+        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override {
+            auto scatter_dir = rec.norm + random_unit_vector();
+
+            if (scatter_dir.near_zero()) {
+                scatter_dir = rec.norm;
+            }
+
+            scattered = ray(rec.p, scatter_dir, r.time());
+            atten = tex->value(rec.u, rec.v, rec.p);
+            return true;
+        }
+
     private:
         shared_ptr<texture> tex;
 };
@@ -54,6 +76,13 @@ class metal : public material {
         metal(const color &albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
         bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered, double &pdf) const override {
+            vec3 reflected = unit_vector(reflect(r.direction(), rec.norm)) + (fuzz * random_unit_vector());
+            scattered = ray(rec.p, reflected, r.time());
+            atten = albedo;
+            return dot(scattered.direction(), rec.norm) > 0;
+        }
+
+        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override {
             vec3 reflected = unit_vector(reflect(r.direction(), rec.norm)) + (fuzz * random_unit_vector());
             scattered = ray(rec.p, reflected, r.time());
             atten = albedo;
@@ -70,6 +99,27 @@ class dialectric : public material {
         dialectric(double refrac_idx) : refrac_idx(refrac_idx) {};
 
         bool scatter(const ray&r, const hit_record &rec, color &atten, ray &scattered, double &pdf) const override {
+            atten = color(1.0, 1.0, 1.0);
+            double ri = rec.facing ? (1.0 / refrac_idx) : refrac_idx;
+
+            vec3 unit_dir = unit_vector(r.direction());
+
+            double cos_theta = std::fmin(dot(-unit_dir, rec.norm), 1.0);
+            double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+
+            vec3 dir;
+            if (ri * sin_theta > 1.0 || reflectance(cos_theta, ri) > random_double()) {
+                dir = reflect(unit_dir, rec.norm);
+            } else {
+                dir = refract(unit_dir, rec.norm, ri);
+            }
+
+            scattered = ray(rec.p, dir, r.time());
+
+            return true;
+        }
+
+        bool scatter(const ray&r, const hit_record &rec, color &atten, ray &scattered) const override {
             atten = color(1.0, 1.0, 1.0);
             double ri = rec.facing ? (1.0 / refrac_idx) : refrac_idx;
 
@@ -113,6 +163,8 @@ class diffuse_light : public material {
             return tex->value(u, v, p); 
         }
 
+        color emitted(double u, double v, const vec3 &p) const override { return tex->value(u, v, p); }
+
     private:
         shared_ptr<texture> tex;
 };
@@ -127,6 +179,12 @@ class isotropic : public material {
             atten = tex->value(rec.u, rec.v, rec.p);
 
             pdf = 1 / (4 * pi);
+            return true;
+        }
+
+        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override {
+            scattered = ray(rec.p, random_unit_vector(), r.time());
+            atten = tex->value(rec.u, rec.v, rec.p);
             return true;
         }
 

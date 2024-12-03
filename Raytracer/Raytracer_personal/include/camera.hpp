@@ -14,6 +14,7 @@
 class camera {
     public:
         int img_wd = default_width;
+        int img_ht;
         double aspect = default_aspect;
         int max_depth = default_max_depth;
         int anti_alias = default_anti_alias;
@@ -27,14 +28,19 @@ class camera {
         double defocus_angle = 0;  // variation angle of rays through each pixel
         double focus_dist    = 10; // distance from cam to lookfrom point to plane of perfect focus
 
+        /*
+            Render row function including importance sampling
+        */
         void render_row(int j, const hittable &world, const hittable &lights, std::string** row_output) {
 
             for (int i = 0; i < img_wd; i++) {
                 color pix_col(0, 0, 0);
-                for (int k = 0; k < sqrt_spp; k++) {
-                    for (int s = 0; s < sqrt_spp; s++) {
-                        ray r = get_ray(i, j, k, s);
-                        pix_col += ray_color(r, max_depth, world, lights);
+                for (int k = -sqrt_spp; k <= sqrt_spp; ++k) {
+                    for (int s = -sqrt_spp; s <= sqrt_spp; ++s) {
+                        if (k * k + s * s <= sqrt_spp * sqrt_spp) {
+                            ray r = get_ray(i, j, k, s);
+                            pix_col += ray_color(r, max_depth, world, lights);
+                        }
                     }
                 }
 
@@ -43,6 +49,26 @@ class camera {
             }
         }
 
+        /*
+            Render row function not intended for importance sampling
+        */
+        void render_row(int j, const hittable &world, std::string** row_output) {
+
+            for (int i = 0; i < img_wd; i++) {
+                color pix_col(0, 0, 0);
+                for (int k = 0; k < anti_alias; k++) {
+                    ray r = get_ray(i, j);
+                    pix_col += ray_color(r, max_depth, world);
+                }
+
+                color out_col = pix_col * anti_alias_scale;
+                row_output[j][i] = write_color(out_col);
+            }
+        }
+
+        /*
+            Rendering function for when importance sampling is occuring
+        */
         void render(const hittable &world, const hittable &lights) {
 
             init();
@@ -73,6 +99,43 @@ class camera {
             }
         }
 
+        /*
+            Rendering function when no importance sampling being used
+        */
+        void render(const hittable &world) {
+
+            init();
+
+            ThreadPool pool(thread::hardware_concurrency());
+            
+            std::ofstream file("img.ppm");
+            file << "P3\n" << img_wd << " " << img_ht << "\n255\n";
+
+            std::string** output = new std::string*[img_ht];
+            for (int i = 0; i < img_ht; i++) {
+                output[i] = new std::string[img_wd];
+            }
+
+            for (int j = 0; j < img_ht; j++) {
+                int row = j;
+                pool.enqueue(([this, &world, output, row]() {
+                    render_row(row, world, output);
+                }));
+            }
+
+            pool.wait_till_done();
+
+            for (int i = 0; i < img_ht; i++) {
+                for (int j = 0; j < img_wd; j++) {
+                    file << output[i][j];
+                }
+            }
+
+        }
+
+        /*
+            Gets ray color while using importance sampling
+        */
         color ray_color(const ray &r, int depth, const hittable &world, const hittable &lights) {
             if (depth <= 0) { return color(0, 0, 0); }
 
@@ -106,9 +169,33 @@ class camera {
             return col_from_emission + col_from_scatter;
         }
 
+        /*
+            Gets ray color when there is NOT importance sampling
+        */
+        color ray_color(const ray &r, int depth, const hittable &world) {
+            if (depth <= 0) { return color(0, 0, 0); }
+
+            hit_record rec;
+
+            if (!world.hit(r, interval(0.001, inf), rec)) {
+                return bg;
+            }
+
+            ray scattered;
+            color atten;
+            color col_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+
+            if (!rec.mat->scatter(r, rec, atten, scattered)) {
+                return col_from_emission;
+            }
+
+            color col_from_scatter = atten * ray_color(scattered, depth - 1, world);
+
+            return col_from_emission + col_from_scatter;
+        }
+
     private:
         double anti_alias_scale;
-        int img_ht;
 
         int sqrt_spp;           // square root of number of samples per pixel
         double recip_sqrt_spp;  // 1 / sqrt_spp
@@ -162,8 +249,27 @@ class camera {
             defocus_v = v * defocus_rad;
         }
 
+        /*
+            Get ray with importance sampling
+        */
         ray get_ray(int i, int j, int s_i, int s_j) const {
             auto offset = sample_sqr_stratified(s_i, s_j);
+            auto pix_sample = pix_loc
+                        + ((i + offset.x()) * pix_delt_u)
+                        + ((j + offset.y()) * pix_delt_v);
+            auto ray_orig = (defocus_angle <= 0) ? center : defocus_disk_sample();
+            auto ray_dir = pix_sample - ray_orig;
+
+            auto r_time = random_double();
+
+            return ray(ray_orig, ray_dir, r_time);
+        }
+
+        /*
+            Get ray without importance sampling
+        */
+        ray get_ray(int i, int j) const {
+            auto offset = sample_sqr();
             auto pix_sample = pix_loc
                         + ((i + offset.x()) * pix_delt_u)
                         + ((j + offset.y()) * pix_delt_v);

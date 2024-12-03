@@ -12,10 +12,6 @@
 using std::shared_ptr;
 using std::make_shared;
 
-#define R 0
-#define G 1
-#define B 2
-
 using color = vec3;
 
 inline double lin_to_gamma(double lin_comp) {
@@ -33,6 +29,8 @@ std::string write_color(color &col) {
     auto r = lin_to_gamma(col.x());
     auto g = lin_to_gamma(col.y());
     auto b = lin_to_gamma(col.z());
+
+    // return std::to_string(r) + ' ' + std::to_string(g) + ' ' + std::to_string(b) + '\n';
 
     auto r_bt = int(255.999 * intens.clamp(r));
     auto g_bt = int(255.999 * intens.clamp(g));

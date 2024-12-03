@@ -1,0 +1,26 @@
+## Completed items
+- Configurable camera (pos, orientation, fov)
+- Anti-aliasing
+- Ray/sphere intersections
+- Ray/triangle intersections
+- Textured spheres/triangles
+- Ability to load/render triangle meshes (objs)
+- Ability to load textures (images)
+- Spacial subdivision (bvh)
+- Specular, diffuse, dialectrics
+- Emissive materials
+
+## Completed extras need 115
+- Volume rendering (10)
+- Quads (10)
+- Motion blur (10)
+- Defocus blur (10)
+- Perlin noise (10)
+- Parallelization (10)
+- Importance Sampling (15)
+
+Have 85 points right now
+
+## Items todo
+- hdr (10)
+- round pixels (20)
