@@ -66,11 +66,44 @@ class sphere : public hittable {
 
         axis_bound_box bounding_box() const override { return bound_box; }
 
+        double pdf_val(const vec3 &orig, const vec3 &dir) {
+            // only works with non-moving spheres
+            hit_record rec;
+            if (!this->hit(ray(orig, dir), interval(0.001, inf), rec)) {
+                return 0;
+            }
+
+            auto dist_sqrd = (center.at(0) - orig).len_sqrd();
+            auto cos_theta_max = std::sqrt(1 - rad * rad / dist_sqrd);
+            auto solid_angle = 2 * pi * (1 - cos_theta_max);
+
+            return 1 / solid_angle;
+        }
+
+        vec3 random(const vec3 &orig) const override {
+            vec3 dir = center.at(0) - orig;
+            auto dist_sqrd = dir.len_sqrd();
+            onb uvw(dir);
+            return uvw.transform(rand_to_sphere(rad, dist_sqrd));
+        }
+
     private:
         ray center;
         double rad;
         shared_ptr<material> mat;
         axis_bound_box bound_box;
+
+        static vec3 rand_to_sphere(double rad, double dist_sqrd) {
+            auto r1 = random_double();
+            auto r2 = random_double();
+            auto z = 1 + r2 * (std::sqrt(1 - rad * rad / dist_sqrd) - 1);
+
+            auto phi = 2 * pi * r1;
+            auto x = std::cos(phi) * std::sqrt(1 - z * z);
+            auto y = std::sin(phi) * std::sqrt(1 - z * z);
+
+            return vec3(x, y, z);
+        }
 };
 
 class quad : public hittable {

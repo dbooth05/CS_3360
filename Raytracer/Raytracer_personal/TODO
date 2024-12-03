@@ -18,9 +18,10 @@
 - Perlin noise (10)
 - Parallelization (10)
 - Importance Sampling (15)
+- round pixels (20)
 
-Have 85 points right now
+Have 105 points right now
 
 ## Items todo
 - hdr (10)
-- round pixels (20)
+- or some other 10 point thing

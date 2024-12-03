@@ -1,4 +1,6 @@
 #include <string>
+#include <ctime>
+#include <iomanip>
 
 #include "camera.hpp"
 #include "constants.hpp"
@@ -17,8 +19,10 @@ enum class scenes {
     CORNELL_BOX,
     CORNELL_SMOKE,
     EARTH,
+    BOOK1_FINAL,
     BOOK2_FINAL,
     TRIANGLE,
+    TESTING,
     NUM_SCENES
 };
 
@@ -250,13 +254,11 @@ void cornell_box(hittable_list &world, camera &cam) {
     world.add(b2);
 
     auto emt = shared_ptr<material>();
-    // hittable_list lights;
     quad lights(vec3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), emt);
-    // lights.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), emt));
 
     cam.aspect = 1.0;
     cam.img_wd = 600;
-    cam.anti_alias = 100;
+    cam.anti_alias = 500;
     cam.max_depth = 100;
     cam.bg = color(0,0,0);
 
@@ -315,6 +317,50 @@ void cornell_smoke(hittable_list &world, camera &cam) {
     cam.render(world, lights);
 }
 
+void cornell_sphere(hittable_list &world, camera &cam) {
+
+    auto red   = make_shared<lamber>(color(.65, .05, .05));
+    auto wht = make_shared<lamber>(color(.73, .73, .73));
+    auto grn = make_shared<lamber>(color(.12, .45, .15));
+    auto lht = make_shared<diffuse_light>(color(15, 15, 15));
+
+    world.add(make_shared<quad>(vec3(555,0,0), vec3(0,555,0), vec3(0,0,555), grn));
+    world.add(make_shared<quad>(vec3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
+    world.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), lht));
+    world.add(make_shared<quad>(vec3(0,0,0), vec3(555,0,0), vec3(0,0,555), wht));
+    world.add(make_shared<quad>(vec3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), wht));
+    world.add(make_shared<quad>(vec3(0,0,555), vec3(555,0,0), vec3(0,555,0), wht));
+
+    shared_ptr<material> alum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
+    shared_ptr<hittable> b1 = box(vec3(0, 0, 0), vec3(165, 330, 165), alum);
+    b1 = make_shared<rotate_y>(b1, 15);
+    b1 = make_shared<translate>(b1, vec3(265, 0, 295));
+    world.add(b1);
+
+    // glass sphere
+    auto glass = make_shared<dialectric>(1.5);
+    world.add(make_shared<sphere>(vec3(190, 90, 190), 90, glass));
+
+    auto emt = shared_ptr<material>();
+    quad lights(vec3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), emt);
+
+    cam.aspect = 1.0;
+    cam.img_wd = 600;
+    cam.anti_alias = 500;
+    cam.max_depth = 100;
+    cam.bg = color(0,0,0);
+
+    cam.fov = 40;
+    cam.lk_from = vec3(278, 278, -800);
+    cam.lk_at = vec3(278, 278, 0);
+    cam.vup = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
+
+    world = hittable_list(make_shared<bvh_node>(world));
+    cam.render(world, lights); 
+}
+
 void earth(hittable_list &world, camera &cam) {
 
     auto earth_tex = make_shared<image_tex>("earthmap.jpg");
@@ -331,6 +377,61 @@ void earth(hittable_list &world, camera &cam) {
     cam.lk_from = vec3(0, 0, 12);
     cam.lk_at = vec3(0, 0, 0);
     cam.defocus_angle = 0;
+
+    world = hittable_list(make_shared<bvh_node>(world));
+    cam.render(world);
+}
+
+void book1_final(hittable_list &world, camera &cam) {
+
+    auto gnd = make_shared<lamber>(color(0.5, 0.5, 0.5));
+    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, gnd));
+
+    for (int i = -11; i < 11; i++) {
+        for (int j = -11; j < 11; j++) {
+            auto choose_mat = random_double();
+            vec3 center(i + 0.9 * random_double(), 0.2, j + 0.9*random_double());
+
+            if ((center - vec3(4, 0.2, 0)).len() > 0.9) {
+                shared_ptr<material> smat;
+
+                if (choose_mat < 0.8) {             // diffuse
+                    auto albedo = color::random() * color::random();
+                    smat = make_shared<lamber>(albedo);
+                } else if (choose_mat < 0.95) {     // metal
+                    auto albedo = color::random(0.5, 1);
+                    auto fuzz = random_double(0, 0.5);
+                    smat = make_shared<metal>(albedo, fuzz);
+                } else {                            // glass
+                    smat = make_shared<dialectric>(1.5);
+                }
+
+                world.add(make_shared<sphere>(center, 0.2, smat));
+            }
+        }
+    }
+
+    auto m1 = make_shared<dialectric>(1.5);
+    auto m2 = make_shared<lamber>(color(0.4, 0.2, 0.1));
+    auto m3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+
+    world.add(make_shared<sphere>(vec3(0, 1, 0), 1.0, m1));
+    world.add(make_shared<sphere>(vec3(-4, 1, 0), 1.0, m2));
+    world.add(make_shared<sphere>(vec3(4, 1, 0), 1.0, m3));
+
+
+    cam.aspect = 16.0 / 9.0;
+    cam.img_wd = 1200;
+    cam.anti_alias = 50;
+    cam.max_depth = 50;
+
+    cam.fov = 20;
+    cam.lk_from = vec3(13, 2, 3);
+    cam.lk_at = vec3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
 
     world = hittable_list(make_shared<bvh_node>(world));
     cam.render(world);
@@ -498,9 +599,49 @@ void teapot(hittable_list &world, camera &cam) {
     cam.render(world);
 }
 
+void testing(hittable_list &world, camera &cam) {
+
+    obj_loader loader;
+    auto grn = make_shared<lamber>(color(0.1, 0.7, 0.1));
+
+    if (loader.load_meshes("./objects/testing_obj.obj", "./objects/testing_obj.mtl")) {
+        std::clog << "\nloaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
+    } else {
+        std::cerr << "Failed to load mesh or material" << std::endl;
+        return;
+    }
+
+    // if (loader.load("./objects/testing_obj.obj", grn)) {
+    //     std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
+    // } else {
+    //     std::cerr << "failed to load mesh" << std::endl;
+    //     return;
+    // }
+
+    for (const auto &tri : loader.get_triangles()) {
+        world.add(tri);
+    }
+
+    auto gnd = make_shared<lamber>(color(0.1, 0.1, 1.0));
+    world.add(make_shared<quad>(vec3(-16, 0, -16), vec3(32, 0, 0), vec3(0, 0, 32), gnd));
+
+    cam.lk_from = vec3(12, 4, 0);
+    cam.lk_at = vec3(0, 1.5, 0);
+
+    cam.img_wd = 1000;
+    cam.anti_alias = 10;
+    cam.max_depth = 10;
+
+    // cam.bg = color(0.5, 0.1, 0.1);
+    
+    world = hittable_list(make_shared<bvh_node>(world));
+    cam.render(world);
+}
+
 int main(int argc, char *argv[]) {
 
     auto start = std::chrono::high_resolution_clock::now();
+    auto start_time_t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
     hittable_list world;
 
@@ -522,9 +663,7 @@ int main(int argc, char *argv[]) {
 
     cam.bg = color(0.70, 0.80, 1.00);
 
-
-
-    int select = 6;
+    int select = 14;
 
     if (argc > 1) {
         for (int i = 0; i < argc; i++) {
@@ -540,6 +679,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::clog << "option: " << select << "\n" << std::flush;
+    std::clog << "\nStart time: " << std::put_time(std::localtime(&start_time_t), "%H:%M:%S\n") << std::flush;
 
     switch (select)
     {
@@ -551,10 +691,13 @@ int main(int argc, char *argv[]) {
         case 5: light(world, cam); break;
         case 6: cornell_box(world, cam); break;
         case 7: cornell_smoke(world, cam); break;
-        case 8: earth(world, cam); break;
-        case 9: book2_final(world, cam); break;
-        case 10: triangle_scene(world, cam); break;
-        case 11: teapot(world, cam); break;
+        case 8: cornell_sphere(world, cam); break;
+        case 9: earth(world, cam); break;
+        case 10: book1_final(world, cam); break;
+        case 11: book2_final(world, cam); break;
+        case 12: triangle_scene(world, cam); break;
+        case 13: teapot(world, cam); break;
+        case 14: testing(world, cam); break;
         default: my_custom_scene(world, cam); break;
     }
 

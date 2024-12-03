@@ -29,7 +29,7 @@ class camera {
         double focus_dist    = 10; // distance from cam to lookfrom point to plane of perfect focus
 
         /*
-            Render row function including importance sampling
+            Render row function including importance sampling. Rounded pixels :)
         */
         void render_row(int j, const hittable &world, const hittable &lights, std::string** row_output) {
 
@@ -50,15 +50,19 @@ class camera {
         }
 
         /*
-            Render row function not intended for importance sampling
+            Render row function not intended for importance sampling. Rounded pixels :)
         */
         void render_row(int j, const hittable &world, std::string** row_output) {
 
             for (int i = 0; i < img_wd; i++) {
                 color pix_col(0, 0, 0);
-                for (int k = 0; k < anti_alias; k++) {
-                    ray r = get_ray(i, j);
-                    pix_col += ray_color(r, max_depth, world);
+                for (int k = -sqrt_spp; k <= sqrt_spp; k++) {
+                    for (int l = -sqrt_spp; l <= sqrt_spp; l++) {
+                        if (k * k + l * l <= sqrt_spp * sqrt_spp) {
+                            ray r = get_ray(i, j, k, l);
+                            pix_col += ray_color(r, max_depth, world);
+                        }
+                    }
                 }
 
                 color out_col = pix_col * anti_alias_scale;
@@ -251,7 +255,7 @@ class camera {
         }
 
         /*
-            Get ray with importance sampling
+            Get ray for rounded pixels (sphere anti-aliasing)
         */
         ray get_ray(int i, int j, int s_i, int s_j) const {
             auto offset = sample_sqr_stratified(s_i, s_j);
@@ -267,7 +271,7 @@ class camera {
         }
 
         /*
-            Get ray without importance sampling
+            Get ray for square anti-aliasing
         */
         ray get_ray(int i, int j) const {
             auto offset = sample_sqr();
