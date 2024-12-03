@@ -4,6 +4,14 @@
 #include "hittable.hpp"
 #include "onb.hpp"
 
+class scatter_record {
+    public:
+        color atten;
+        shared_ptr<pdf> pdf_ptr;
+        bool skip_pdf;
+        ray skip_pdf_ray;
+};
+
 class material {
     public:
         virtual ~material() = default;
@@ -17,7 +25,7 @@ class material {
         }
 
         virtual bool scatter(
-            const ray &r_in, const hit_record& rec, color &attenuation, ray &scattered, double &pdf
+            const ray &r_in, const hit_record& rec, scatter_record &srec
         ) const {
             return false;
         }
@@ -38,15 +46,10 @@ class lamber : public material {
         lamber(const color &albedo) : tex(make_shared<solid_color>(albedo)) {}
         lamber(const shared_ptr<texture> tex) : tex(tex) {}
 
-        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered, double &pdf) const override {
-            // TODO start here
-            onb uvw(rec.norm);
-            auto scatter_dir = uvw.transform(random_cos_dir());
-
-            scattered = ray(rec.p, unit_vector(scatter_dir), r.time());
-
-            atten = tex->value(rec.u, rec.v, rec.p);
-            pdf = dot(uvw.w(), scattered.direction()) / pi;
+        bool scatter(const ray &r, const hit_record &rec, scatter_record &srec) const override {
+            srec.atten = tex->value(rec.u, rec.v, rec.p);
+            srec.pdf_ptr = make_shared<cos_pdf>(rec.norm);
+            srec.skip_pdf = false;
             return true;
         }
 
@@ -75,11 +78,15 @@ class metal : public material {
     public:
         metal(const color &albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
-        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered, double &pdf) const override {
+        bool scatter(const ray &r, const hit_record &rec, scatter_record &srec) const override {
             vec3 reflected = unit_vector(reflect(r.direction(), rec.norm)) + (fuzz * random_unit_vector());
-            scattered = ray(rec.p, reflected, r.time());
-            atten = albedo;
-            return dot(scattered.direction(), rec.norm) > 0;
+
+            srec.atten = albedo;
+            srec.pdf_ptr = nullptr;
+            srec.skip_pdf = true;
+            srec.skip_pdf_ray = ray(rec.p, reflected, r.time());
+
+            return true;
         }
 
         bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered) const override {
@@ -98,8 +105,11 @@ class dialectric : public material {
     public:
         dialectric(double refrac_idx) : refrac_idx(refrac_idx) {};
 
-        bool scatter(const ray&r, const hit_record &rec, color &atten, ray &scattered, double &pdf) const override {
-            atten = color(1.0, 1.0, 1.0);
+        bool scatter(const ray&r, const hit_record &rec, scatter_record &srec) const override {
+            srec.atten = color(1.0, 1.0, 1.0);
+            srec.pdf_ptr = nullptr;
+            srec.skip_pdf = true;
+
             double ri = rec.facing ? (1.0 / refrac_idx) : refrac_idx;
 
             vec3 unit_dir = unit_vector(r.direction());
@@ -114,7 +124,7 @@ class dialectric : public material {
                 dir = refract(unit_dir, rec.norm, ri);
             }
 
-            scattered = ray(rec.p, dir, r.time());
+            srec.skip_pdf_ray = ray(rec.p, dir, r.time());
 
             return true;
         }
@@ -174,11 +184,10 @@ class isotropic : public material {
         isotropic(const color &albedo) : tex(make_shared<solid_color>(albedo)) {}
         isotropic(shared_ptr<texture> tex) : tex(tex) {}
 
-        bool scatter(const ray &r, const hit_record &rec, color &atten, ray &scattered, double &pdf) const override {
-            scattered = ray(rec.p, random_unit_vector(), r.time());
-            atten = tex->value(rec.u, rec.v, rec.p);
-
-            pdf = 1 / (4 * pi);
+        bool scatter(const ray &r, const hit_record &rec, scatter_record &srec) const override {
+            srec.atten = tex->value(rec.u, rec.v, rec.p);
+            srec.pdf_ptr = make_shared<sphere_pdf>();
+            srec.skip_pdf = false;
             return true;
         }
 

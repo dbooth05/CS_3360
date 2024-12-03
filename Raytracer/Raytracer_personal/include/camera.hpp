@@ -145,26 +145,27 @@ class camera {
                 return bg;
             }
 
-            ray scattered;
-            color atten;
-            double pdf_val;
+            scatter_record srec;
             color col_from_emission = rec.mat->emitted(r, rec, rec.u, rec.v, rec.p);
 
-            if (!rec.mat->scatter(r, rec, atten, scattered, pdf_val)) {
+            if (!rec.mat->scatter(r, rec, srec)) {
                 return col_from_emission;
             }
 
-            auto p0 = make_shared<hittable_pdf>(lights, rec.p);
-            auto p1 = make_shared<cos_pdf>(rec.norm);
-            mix_pdf mixed(p0, p1);
+            if (srec.skip_pdf) {
+                return srec.atten * ray_color(srec.skip_pdf_ray, depth-1, world, lights);
+            }
 
-            scattered = ray(rec.p, mixed.generate(), r.time());
-            pdf_val = mixed.value(scattered.direction());
+            auto lht_ptr = make_shared<hittable_pdf>(lights, rec.p);
+            mix_pdf p(lht_ptr, srec.pdf_ptr);
+
+            ray scattered = ray(rec.p, p.generate(), r.time());
+            auto pdf_val = p.value(scattered.direction());
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
 
             color sample_col = ray_color(scattered, depth-1, world, lights);
-            color col_from_scatter = (atten * scattering_pdf * sample_col) / pdf_val;
+            color col_from_scatter = (srec.atten * scattering_pdf * sample_col) / pdf_val;
 
             return col_from_emission + col_from_scatter;
         }

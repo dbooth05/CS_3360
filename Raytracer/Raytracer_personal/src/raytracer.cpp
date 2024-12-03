@@ -61,9 +61,10 @@ void my_custom_scene(hittable_list &world, camera &cam) {
 
     cam.img_wd = 1900;
     cam.aspect = 16.0 / 9.0;
-    cam.anti_alias = 10;
+    cam.anti_alias = 100;
     cam.max_depth = 50;
     cam.lk_from = vec3(0, 0, 10);
+    cam.lk_at = vec3(0, 0, 0);
 
     cam.defocus_angle = 0;
 
@@ -111,6 +112,17 @@ void bouncing_spheres(hittable_list &world, camera &cam) {
     world.add(make_shared<sphere>(vec3(-4, 1, 0), 1.0, mat2));
     world.add(make_shared<sphere>(vec3(4, 1, 0), 1.0, mat3));
 
+    cam.lk_from = vec3(13, 2, 3);
+    cam.lk_at = vec3(0, 0, 0);
+    cam.aspect = 16.0 / 9.0;
+    cam.max_depth = 50;
+    
+    cam.fov = 20;
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
+
     world = hittable_list(make_shared<bvh_node>(world));
     cam.render(world);
 }
@@ -120,6 +132,18 @@ void checkered_spheres(hittable_list &world, camera &cam) {
     auto checker = make_shared<checkers>(0.32, color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
     world.add(make_shared<sphere>(vec3(0, -10, 0), 10, make_shared<lamber>(checker)));
     world.add(make_shared<sphere>(vec3(0,  10, 0), 10, make_shared<lamber>(checker)));
+
+
+    cam.aspect = 16.0 / 9.0;
+    cam.img_wd = 400;
+    cam.anti_alias = 100;
+    cam.max_depth = 50;
+
+    cam.fov = 20;
+    cam.lk_from = vec3(13, 2, 3);
+    cam.lk_at = vec3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
+    cam.defocus_angle = 0;
 
     world = hittable_list(make_shared<bvh_node>(world));
     cam.render(world);
@@ -131,6 +155,15 @@ void perlin_sphere(hittable_list &world, camera &cam) {
     world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lamber>(perlin)));
     world.add(make_shared<sphere>(vec3(0, 2, 0), 2, make_shared<lamber>(perlin)));
 
+    cam.aspect = 16.0 / 9.0;
+    cam.img_wd = 400;
+    cam.anti_alias = 100;
+    cam.max_depth = 50;
+
+    cam.fov = 20;
+    cam.lk_from = vec3(13, 2, 3);
+    cam.lk_at = vec3(0, 0, 0);
+    cam.vup = vec3(0, 1, 0);
     cam.defocus_angle = 0;
 
     world = hittable_list(make_shared<bvh_node>(world));
@@ -205,7 +238,8 @@ void cornell_box(hittable_list &world, camera &cam) {
     world.add(make_shared<quad>(vec3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), wht));
     world.add(make_shared<quad>(vec3(0,0,555), vec3(555,0,0), vec3(0,555,0), wht));
 
-    shared_ptr<hittable> b1 = box(vec3(0, 0, 0), vec3(165, 330, 165), wht);
+    shared_ptr<material> alum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
+    shared_ptr<hittable> b1 = box(vec3(0, 0, 0), vec3(165, 330, 165), alum);
     b1 = make_shared<rotate_y>(b1, 15);
     b1 = make_shared<translate>(b1, vec3(265, 0, 295));
     world.add(b1);
@@ -222,8 +256,8 @@ void cornell_box(hittable_list &world, camera &cam) {
 
     cam.aspect = 1.0;
     cam.img_wd = 600;
-    cam.anti_alias = 10;
-    cam.max_depth = 10;
+    cam.anti_alias = 100;
+    cam.max_depth = 100;
     cam.bg = color(0,0,0);
 
     cam.fov = 40;
@@ -325,7 +359,9 @@ void book2_final(hittable_list &world, camera &cam) {
     world.add(make_shared<bvh_node>(boxes));
 
     auto lght = make_shared<diffuse_light>(color(7, 7, 7));
+    auto emt = make_shared<material>();
     world.add(make_shared<quad>(vec3(123, 554, 147), vec3(300, 0, 0), vec3(0, 0, 265), lght));
+    quad lights(vec3(123, 554, 147), vec3(300, 0, 0), vec3(0, 0, 265), emt);
 
     auto c1 = vec3(400, 400, 200);
     auto c2 = c1 + vec3(30, 0, 0);
@@ -357,7 +393,7 @@ void book2_final(hittable_list &world, camera &cam) {
 
     cam.aspect = 1.0;
     cam.img_wd = 1000;
-    cam.anti_alias = 10000;
+    cam.anti_alias = 1000;
     cam.max_depth = 20;
     cam.bg = color(0, 0, 0);
 
@@ -368,7 +404,8 @@ void book2_final(hittable_list &world, camera &cam) {
     cam.defocus_angle = 0;
 
     world = hittable_list(make_shared<bvh_node>(world));
-    cam.render(world);
+    // cam.render(world);
+    cam.render(world, lights);
 }
 
 void triangle_scene(hittable_list &world, camera &cam) {
