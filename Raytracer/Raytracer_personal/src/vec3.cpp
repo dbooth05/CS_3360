@@ -9,6 +9,10 @@ vec3 operator+(const vec3& u, const vec3& v) {
     return vec3(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]);
 }
 
+vec3 operator+(const vec3& u, double t) {
+    return vec3(u.e[0] + t, u.e[1] + t, u.e[2] + t);
+}
+
 vec3 operator-(const vec3& u, const vec3& v) {
     return vec3(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]);
 }
@@ -27,6 +31,10 @@ vec3 operator*(const vec3& v, double t) {
 
 vec3 operator/(const vec3& v, double t) {
     return (1/t) * v;
+}
+
+vec3 operator/(const vec3& u, const vec3& v) {
+    return vec3(u.e[0] / v.e[0], u.e[1] / v.e[1], u.e[2] / v.e[2]);
 }
 
 double dot(const vec3& u, const vec3& v) {
@@ -95,4 +103,13 @@ vec3 random_cos_dir() {
     auto z = std::sqrt(1 - r2);
 
     return vec3(x, y, z);
+}
+
+vec3 normalize(const vec3 &v) {
+    double len = v.len();
+    if (len == 0) {
+        throw std::runtime_error("Cannot normalize a zero-len vector");
+    }
+
+    return v / len;
 }

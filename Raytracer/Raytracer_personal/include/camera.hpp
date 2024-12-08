@@ -11,6 +11,14 @@
 #include "materials.hpp"
 #include "thread_pools.hpp"
 
+color toneMap(const color &hdrcolor) {
+    double exposure = 1.0;
+    float white = 10.0;
+    color mapped = hdrcolor * exposure / (hdrcolor + exposure);
+    mapped /= white;
+    return mapped;
+}
+
 class camera {
     public:
         int img_wd = default_width;
@@ -18,7 +26,8 @@ class camera {
         double aspect = default_aspect;
         int max_depth = default_max_depth;
         int anti_alias = default_anti_alias;
-        color bg;
+        color bg = color(0.0, 1.0, 1.0);
+        shared_ptr<texture> bg_tex = nullptr;
 
         double fov = default_fov;
         vec3 lk_from = vec3(0, 0, 0);
@@ -27,6 +36,9 @@ class camera {
 
         double defocus_angle = 0;  // variation angle of rays through each pixel
         double focus_dist    = 10; // distance from cam to lookfrom point to plane of perfect focus
+
+        double gamma = 1.0;
+        bool is_hdr = false;
 
         /*
             Render row function including importance sampling. Rounded pixels :)
@@ -45,7 +57,7 @@ class camera {
                 }
 
                 color out_col = pix_col * anti_alias_scale;
-                row_output[j][i] = write_color(out_col);
+                row_output[j][i] = write_color(out_col, anti_alias, is_hdr, gamma);
             }
         }
 
@@ -66,7 +78,7 @@ class camera {
                 }
 
                 color out_col = pix_col * anti_alias_scale;
-                row_output[j][i] = write_color(out_col);
+                row_output[j][i] = write_color(out_col, anti_alias, is_hdr, gamma);
             }
         }
 
@@ -110,8 +122,9 @@ class camera {
 
             init();
 
-            ThreadPool pool(thread::hardware_concurrency());
-            
+            // ThreadPool pool(thread::hardware_concurrency());
+            ThreadPool pool(1);
+
             std::ofstream file("img.ppm");
             file << "P3\n" << img_wd << " " << img_ht << "\n255\n";
 
@@ -150,6 +163,7 @@ class camera {
             }
 
             scatter_record srec;
+            
             color col_from_emission = rec.mat->emitted(r, rec, rec.u, rec.v, rec.p);
 
             if (!rec.mat->scatter(r, rec, srec)) {
@@ -183,7 +197,13 @@ class camera {
             hit_record rec;
 
             if (!world.hit(r, interval(0.001, inf), rec)) {
-                return bg;
+                if (bg_tex) {
+                    auto unit_dir = unit_vector(r.direction());
+                    double u, v; get_spherical_uv(unit_dir, u, v);
+                    return bg_tex->value(u, v, unit_dir);
+                } else {
+                    return bg;
+                }
             }
 
             ray scattered;

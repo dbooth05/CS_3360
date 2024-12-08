@@ -22,6 +22,7 @@ enum class scenes {
     BOOK1_FINAL,
     BOOK2_FINAL,
     TRIANGLE,
+    HDRI,
     TESTING,
     NUM_SCENES
 };
@@ -258,7 +259,7 @@ void cornell_box(hittable_list &world, camera &cam) {
 
     cam.aspect = 1.0;
     cam.img_wd = 600;
-    cam.anti_alias = 500;
+    cam.anti_alias = 250;
     cam.max_depth = 100;
     cam.bg = color(0,0,0);
 
@@ -422,7 +423,8 @@ void book1_final(hittable_list &world, camera &cam) {
 
     cam.aspect = 16.0 / 9.0;
     cam.img_wd = 1200;
-    cam.anti_alias = 50;
+    cam.img_wd = 600;
+    cam.anti_alias = 100;
     cam.max_depth = 50;
 
     cam.fov = 20;
@@ -432,6 +434,8 @@ void book1_final(hittable_list &world, camera &cam) {
 
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
+
+    cam.bg_tex = make_shared<image_hdr_tex>("./cinema.hdr");
 
     world = hittable_list(make_shared<bvh_node>(world));
     cam.render(world);
@@ -599,42 +603,79 @@ void teapot(hittable_list &world, camera &cam) {
     cam.render(world);
 }
 
-void testing(hittable_list &world, camera &cam) {
+// void testing(hittable_list &world, camera &cam) {
 
-    obj_loader loader;
-    auto grn = make_shared<lamber>(color(0.1, 0.7, 0.1));
+//     obj_loader loader;
+//     auto grn = make_shared<lamber>(color(0.1, 0.7, 0.1));
 
-    if (loader.load_meshes("./objects/testing_obj.obj", "./objects/testing_obj.mtl")) {
-        std::clog << "\nloaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
-    } else {
-        std::cerr << "Failed to load mesh or material" << std::endl;
-        return;
-    }
+//     // if (loader.load_meshes("./objects/testing_obj.obj", "./objects/testing_obj.mtl")) {
+//     if (loader.load_meshes("./objects/cylinder.obj", "./objects/cylinder.mtl")) {
+//         std::clog << "\nloaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
+//     } else {
+//         std::cerr << "Failed to load mesh or material" << std::endl;
+//         return;
+//     }
 
-    // if (loader.load("./objects/testing_obj.obj", grn)) {
-    //     std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
-    // } else {
-    //     std::cerr << "failed to load mesh" << std::endl;
-    //     return;
-    // }
+//     // if (loader.load("./objects/testing_obj.obj", grn)) {
+//     //     std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
+//     // } else {
+//     //     std::cerr << "failed to load mesh" << std::endl;
+//     //     return;
+//     // }
 
-    for (const auto &tri : loader.get_triangles()) {
-        world.add(tri);
-    }
+//     for (const auto &tri : loader.get_triangles()) {
+//         world.add(tri);
+//     }
 
-    auto gnd = make_shared<lamber>(color(0.1, 0.1, 1.0));
-    world.add(make_shared<quad>(vec3(-16, 0, -16), vec3(32, 0, 0), vec3(0, 0, 32), gnd));
+//     auto gnd = make_shared<lamber>(color(0.1, 0.1, 1.0));
+//     world.add(make_shared<quad>(vec3(-16, 0, -16), vec3(32, 0, 0), vec3(0, 0, 32), gnd));
 
-    cam.lk_from = vec3(12, 4, 0);
-    cam.lk_at = vec3(0, 1.5, 0);
+//     cam.lk_from = vec3(12, 4, 0);
+//     cam.lk_at = vec3(0, 1.5, 0);
+
+//     cam.img_wd = 1000;
+//     cam.anti_alias = 10;
+//     cam.max_depth = 10;
+
+//     // cam.bg = color(0.5, 0.1, 0.1);
+    
+//     world = hittable_list(make_shared<bvh_node>(world));
+//     cam.render(world);
+// }
+
+void hdri(hittable_list &world, camera &cam) {
+
+    auto alum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
+    world.add(make_shared<sphere>(vec3(0, 1, 0), 2, alum));
 
     cam.img_wd = 1000;
-    cam.anti_alias = 10;
+    cam.aspect = 4.0 / 3.0;
+    cam.anti_alias = 250;
     cam.max_depth = 10;
 
-    // cam.bg = color(0.5, 0.1, 0.1);
-    
-    world = hittable_list(make_shared<bvh_node>(world));
+    cam.lk_from = vec3(-16, 1, -5);
+    cam.lk_at = vec3(0, 1, 0);
+
+    cam.bg_tex = make_shared<image_hdr_tex>("./cinema.hdr");
+
+    cam.render(world);
+}
+
+void testing(hittable_list &world, camera &cam) {
+
+    auto g1 = make_shared<dialectric>(1.5);
+    auto blue = make_shared<lamber>(color(0.1, 0.1, 0.9));
+    world.add(make_shared<sphere>(vec3(0, 1, 0), 2, blue));
+
+    auto bg_skybox = make_shared<image_hdr_tex>("./cinema.hdr");
+    auto bg = make_shared<lamber>(bg_skybox);
+
+    cam.bg_tex = bg_skybox;
+    cam.bg = color(0.1, 0.1, 0.9);
+
+    cam.lk_from = vec3(50, 2, 0);
+    cam.lk_at = vec3(0, 1, 0);
+
     cam.render(world);
 }
 
@@ -697,7 +738,8 @@ int main(int argc, char *argv[]) {
         case 11: book2_final(world, cam); break;
         case 12: triangle_scene(world, cam); break;
         case 13: teapot(world, cam); break;
-        case 14: testing(world, cam); break;
+        case 14: hdri(world, cam); break;
+        case 15: testing(world, cam); break;
         default: my_custom_scene(world, cam); break;
     }
 

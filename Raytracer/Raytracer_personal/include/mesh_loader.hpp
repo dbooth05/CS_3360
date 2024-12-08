@@ -163,7 +163,7 @@ class obj_loader {
             if (ks.e[0] > 0 || ks.e[1] > 0 || ks.e[2] > 0) {
                 // Metalic material (metal)
                 double fuzz = 1.0 / (1.0 + std::sqrt(ns));
-                std::clog << "\nmaking metal material with a fuzz of: " << fuzz << std::flush;
+                std::clog << "\nmaking metal material with a fuzz of: " << fuzz << " and vec3 of: " << kd.x() << " " << kd.y() << " " << kd.z() << std::flush;
                 return std::make_shared<metal>(kd, 0.1);
             }
 

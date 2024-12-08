@@ -8,11 +8,14 @@
 
 #include <iostream>
 #include <memory>
+#include <algorithm>
 
 using std::shared_ptr;
 using std::make_shared;
 
 using color = vec3;
+
+double pi_col = 3.14159265;
 
 inline double lin_to_gamma(double lin_comp) {
     if (lin_comp > 0) {
@@ -22,15 +25,16 @@ inline double lin_to_gamma(double lin_comp) {
     return 0;
 }
 
-std::string write_color(color &col) {
+std::string write_color(color &col, int aa, bool is_hdr=false, double gamma=1.0) {
+
+    if (is_hdr) {
+        return std::to_string(col.x()) + ' ' + std::to_string(col.y()) + ' ' + std::to_string(col.z()) + '\n';
+    }
 
     static const interval intens(0.000, 0.999);
-
     auto r = lin_to_gamma(col.x());
     auto g = lin_to_gamma(col.y());
     auto b = lin_to_gamma(col.z());
-
-    // return std::to_string(r) + ' ' + std::to_string(g) + ' ' + std::to_string(b) + '\n';
 
     auto r_bt = int(255.999 * intens.clamp(r));
     auto g_bt = int(255.999 * intens.clamp(g));
@@ -41,6 +45,7 @@ std::string write_color(color &col) {
 
 class texture {
     public:
+
         virtual ~texture() = default;
 
         virtual color value(double u, double v, const vec3& p) const = 0;
@@ -115,5 +120,69 @@ class image_tex : public texture {
     private:
         rtw_image img;
 };
+
+class image_hdr_tex : public texture {
+    public:
+        const static int bytes_per_pixel = 3;
+
+        image_hdr_tex(const char* filename) {
+            auto comp_per_pix = 3;
+            img_data = stbi_loadf(filename, &width, &height, &comp_per_pix, comp_per_pix);
+
+            if (img_data) {
+                std::clog << "\nLoading hdr image: " << filename << std::endl;
+            } else {
+                std::cerr << "\nNot an hdr image: " << filename << std::flush;
+                exit(0);
+            }
+
+            bytes_per_line = bytes_per_pixel * width;
+        }
+
+        ~image_hdr_tex() {
+            if (img_data) {
+                stbi_image_free(img_data);
+            }
+        }        
+
+        color value(double u, double v, const vec3 &p) const override {
+            if (!img_data || height <= 0) return color(0, 1, 1);
+
+           u = std::clamp(u, 0.0, 1.0);
+           v = 1 - std::clamp(v, 0.0, 1.0);
+
+            auto i = static_cast<int>(u * width);
+            auto j = static_cast<int>(v * height);
+
+            if (i >= width) i = width - 1;
+            if (j >= height) j = height - 1;
+
+
+            float* pix = img_data + j * bytes_per_line + i * bytes_per_pixel;
+
+            return color(pix[0], pix[1], pix[2]);            
+        }
+
+    private:
+        int width;
+        int height;
+        int bytes_per_line;
+        float *img_data = nullptr;
+};
+
+static void get_spherical_uv(const vec3 &p, double& u, double&v){
+    // p: a given point on the sphere of radius one, centered at the origin.
+    // u: returned value [0,1] of angle around the Y axis from X=-1.
+    // v: returned value [0,1] of angle from Y=-1 to Y=+1.
+    //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+    //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+    //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+    auto theta = acos(-p.y());
+    auto phi = atan2(-p.z(), p.x()) + pi_col;
+
+    u = phi / (2*pi_col);
+    v = theta / pi_col;
+}
 
 #endif

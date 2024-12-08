@@ -73,11 +73,13 @@ class vec3 {
 // non-class utility functions
 std::ostream& operator<<(std::ostream& out, const vec3& v);
 vec3 operator+(const vec3& u, const vec3& v);
+vec3 operator+(const vec3& u, double t);
 vec3 operator-(const vec3& u, const vec3& v);
 vec3 operator*(const vec3& u, const vec3& v);
 vec3 operator*(double t, const vec3& v);
 vec3 operator*(const vec3& v, double t);
 vec3 operator/(const vec3& v, double t);
+vec3 operator/(const vec3& u, const vec3& v);
 double dot(const vec3& u, const vec3& v);
 vec3 cross(const vec3& u, const vec3& v);
 vec3 unit_vector(const vec3& v);
@@ -87,6 +89,7 @@ vec3 random_on_hemisphere(const vec3& normal);
 vec3 reflect(const vec3& v, const vec3& n);
 vec3 refract(const vec3& uv, const vec3& n, double t);
 vec3 random_cos_dir();
+vec3 normalize(const vec3 &v);
 
 
 #endif
