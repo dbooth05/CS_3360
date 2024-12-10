@@ -73,7 +73,7 @@ void my_custom_scene(hittable_list &world, camera &cam) {
 
     cam.defocus_angle = 0;
 
-    cam.bg_tex = make_shared<image_hdr_tex>("./hdr_assets/clear_night.hdr");
+    cam.bg_tex = make_shared<image_hdr_tex>("./hdr_assets/esplanade.hdr");
     cam.bg = color(0, 0, 0);
 
     cam.render(world);
