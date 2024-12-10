@@ -45,34 +45,35 @@ void my_custom_scene(hittable_list &world, camera &cam) {
 
     auto mat_grnd = make_shared<lamber>(color(0.098, 0.0, 0.2));
     auto mirror = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-    auto glass = make_shared<dialectric>(1.0 / 1.5);
-    auto glass1 = make_shared<dialectric>(1.5);
+    auto glass = make_shared<dielectric>(1.0 / 1.5);
+    auto glass1 = make_shared<dielectric>(1.5);
     auto light = make_shared<diffuse_light>(color(10, 10, 10));
     auto white = make_shared<lamber>(color(0.99, 0.99, 0.99));
 
-    world.add(make_shared<sphere>(vec3(0, -1001, 0), 1000, mat_grnd));
+    // world.add(make_shared<sphere>(vec3(0, -1001, 0), 1000, mat_grnd));
     world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 1.0, glass1));
     world.add(make_shared<sphere>(vec3(-1.25, 0, 0), 0.5, glass));
     world.add(make_shared<sphere>(vec3( 1.25, 0, 0), 1.0, mirror));
-    world.add(make_shared<sphere>(vec3(0, 4, 0), 1.5, light));
+    // world.add(make_shared<sphere>(vec3(0, 4, 0), 1.5, light));
 
-    auto bg_mat = make_shared<lamber>(color(1.0, 0.0, 0.0));
-    for (int i = 0; i < 4; i++) {
-        world.add(make_shared<sphere>(vec3(-3 + (i * 2), 0.0, -6), 1.0, bg_mat));
-    }
+    // auto bg_mat = make_shared<lamber>(color(1.0, 0.0, 0.0));
+    // for (int i = 0; i < 4; i++) {
+    //     world.add(make_shared<sphere>(vec3(-3 + (i * 2), 0.0, -6), 1.0, bg_mat));
+    // }
 
-    shared_ptr<hittable> cloud = make_shared<sphere>(vec3(0, 4, 0), 3, white);
-    world.add(make_shared<medium>(cloud, 0.001, color(0.8, 0.8, 0.8)));
+    // shared_ptr<hittable> cloud = make_shared<sphere>(vec3(0, 4, 0), 3, white);
+    // world.add(make_shared<medium>(cloud, 0.001, color(0.8, 0.8, 0.8)));
 
     cam.img_wd = 1900;
     cam.aspect = 16.0 / 9.0;
-    cam.anti_alias = 100;
-    cam.max_depth = 50;
+    cam.anti_alias = 1000;
+    cam.max_depth = 250;
     cam.lk_from = vec3(0, 0, 10);
     cam.lk_at = vec3(0, 0, 0);
 
     cam.defocus_angle = 0;
 
+    cam.bg_tex = make_shared<image_hdr_tex>("./hdr_assets/clear_night.hdr");
     cam.bg = color(0, 0, 0);
 
     cam.render(world);
@@ -102,14 +103,14 @@ void bouncing_spheres(hittable_list &world, camera &cam) {
                     sphere_mat = make_shared<metal>(albedo, fuzz);
                     world.add(make_shared<sphere>(center, 0.2, sphere_mat));
                 } else {
-                    sphere_mat = make_shared<dialectric>(1.5);
+                    sphere_mat = make_shared<dielectric>(1.5);
                     world.add(make_shared<sphere>(center, 0.2, sphere_mat));
                 }
             }
         }
     }
 
-    auto mat1 = make_shared<dialectric>(1.5);
+    auto mat1 = make_shared<dielectric>(1.5);
     auto mat2 = make_shared<lamber>(color(0.4, 0.2, 0.1));
     auto mat3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
 
@@ -339,7 +340,7 @@ void cornell_sphere(hittable_list &world, camera &cam) {
     world.add(b1);
 
     // glass sphere
-    auto glass = make_shared<dialectric>(1.5);
+    auto glass = make_shared<dielectric>(1.5);
     world.add(make_shared<sphere>(vec3(190, 90, 190), 90, glass));
 
     auto emt = shared_ptr<material>();
@@ -404,7 +405,7 @@ void book1_final(hittable_list &world, camera &cam) {
                     auto fuzz = random_double(0, 0.5);
                     smat = make_shared<metal>(albedo, fuzz);
                 } else {                            // glass
-                    smat = make_shared<dialectric>(1.5);
+                    smat = make_shared<dielectric>(1.5);
                 }
 
                 world.add(make_shared<sphere>(center, 0.2, smat));
@@ -412,7 +413,7 @@ void book1_final(hittable_list &world, camera &cam) {
         }
     }
 
-    auto m1 = make_shared<dialectric>(1.5);
+    auto m1 = make_shared<dielectric>(1.5);
     auto m2 = make_shared<lamber>(color(0.4, 0.2, 0.1));
     auto m3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
 
@@ -424,8 +425,8 @@ void book1_final(hittable_list &world, camera &cam) {
     cam.aspect = 16.0 / 9.0;
     cam.img_wd = 1200;
     cam.img_wd = 600;
-    cam.anti_alias = 100;
-    cam.max_depth = 50;
+    cam.anti_alias = 500;
+    cam.max_depth = 100;
 
     cam.fov = 20;
     cam.lk_from = vec3(13, 2, 3);
@@ -435,7 +436,8 @@ void book1_final(hittable_list &world, camera &cam) {
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
 
-    cam.bg_tex = make_shared<image_hdr_tex>("./cinema.hdr");
+    // cam.is_hdr = true;
+    cam.bg_tex = make_shared<image_hdr_tex>("./hdr_assets/cinema.hdr");
 
     world = hittable_list(make_shared<bvh_node>(world));
     cam.render(world);
@@ -473,13 +475,13 @@ void book2_final(hittable_list &world, camera &cam) {
     auto sphere_mat = make_shared<lamber>(color(0.7, 0.3, 0.1));
     world.add(make_shared<sphere>(c1, c2, 50, sphere_mat));
 
-    world.add(make_shared<sphere>(vec3(260, 150, 45), 50, make_shared<dialectric>(1.5)));
+    world.add(make_shared<sphere>(vec3(260, 150, 45), 50, make_shared<dielectric>(1.5)));
     world.add(make_shared<sphere>(vec3(0, 150, 145), 50, make_shared<metal>(color(0.8, 0.8, 0.9), 1.0)));
 
-    auto boundary = make_shared<sphere>(vec3(360, 150, 145), 70, make_shared<dialectric>(1.5));
+    auto boundary = make_shared<sphere>(vec3(360, 150, 145), 70, make_shared<dielectric>(1.5));
     world.add(boundary);
     world.add(make_shared<medium>(boundary, 0.2, color(0.2, 0.4, 0.9)));
-    boundary = make_shared<sphere>(vec3(0, 0, 0), 5000, make_shared<dialectric>(1.5));
+    boundary = make_shared<sphere>(vec3(0, 0, 0), 5000, make_shared<dielectric>(1.5));
     world.add(make_shared<medium>(boundary, 0.0001, color(1, 1, 1)));
 
     auto emat = make_shared<lamber>(make_shared<image_tex>("earthmap.jpg"));
@@ -536,7 +538,7 @@ void teapot(hittable_list &world, camera &cam) {
     // can be any material type. Could take in a list of files
     // and a list of materials
     auto mat = std::make_shared<lamber>(color(0.9, 0.0, 0.0));
-    auto glass = std::make_shared<dialectric>(1.50);
+    auto glass = std::make_shared<dielectric>(1.50);
 
     obj_loader loader;
 
@@ -560,41 +562,42 @@ void teapot(hittable_list &world, camera &cam) {
     // world.add(make_shared<sphere>(vec3(0, 1, 0), 0.75, diff_light));
 
     // auto mirror = make_shared<metal>(color(0.5, 0.5, 0.5), 0.0);
-    // auto glass = make_shared<dialectric>(1.5);
-    // auto g1 = make_shared<dialectric>(1.0);
+    // auto glass = make_shared<dielectric>(1.5);
+    // auto g1 = make_shared<dielectric>(1.0);
     // world.add(make_shared<sphere>(vec3(-7, 1, 2), 3, glass)); 
     // world.add(make_shared<sphere>(vec3(-7, 1, 2), 2.5, g1));
 
     // The containing box
     // Floor:
-    auto gnd = make_shared<metal>(color(1.0, 0.3, 0.3), 1);    
-    world.add(make_shared<quad>(vec3(-4, 0, -8), vec3(16, 0, 0), vec3(0, 0, 19), gnd));
+    auto gnd = make_shared<metal>(color(0.3, 0.3, 0.3), 0.5);   
+    // auto gnd = make_shared<lamber>(color(0.0, 0.0, 0.0)); 
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(8, 0, 0), vec3(0, 0, 8), gnd));
     // Ceiling:
     auto ceil = make_shared<metal>(color(1.0, 0.3, 0.3), 0.9);
-    world.add(make_shared<quad>(vec3(-4, 10, -8), vec3(16, 0, 0), vec3(0, 0, 19), ceil));
+    world.add(make_shared<quad>(vec3(-4, 8, -4), vec3(4, 0, 0), vec3(0, 0, 8), ceil));
     // ceiling light;
-    world.add(make_shared<quad>(vec3(-4, 5, -8), vec3(8, 0, 0), vec3(0, 0, 12), diff_light));
-    quad lights(vec3(-4, 5, -8), vec3(8, 0, 0), vec3(0, 0, 12), emt);
+    world.add(make_shared<quad>(vec3(-1, 7.75, -1), vec3(2, 0, 0), vec3(0, 0, 2), diff_light));
+    quad lights(vec3(-1, 7.75, -1), vec3(2, 0, 0), vec3(0, 0, 2), emt);
 
     // Back wall
-    auto walls = make_shared<lamber>(color(0.098, 0.0, 0.2));
-    world.add(make_shared<quad>(vec3(-4, 0, -8), vec3(16, 0, 0), vec3(0, 10, 0), walls));
+    auto walls = make_shared<lamber>(color(0.1, 0.05, 0.1));
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(8, 0, 0), vec3(0, 8, 0), walls));
     // front wall
-    world.add(make_shared<quad>(vec3(-4, 0, 11), vec3(16, 0, 0), vec3(0, 10, 0), walls));
+    world.add(make_shared<quad>(vec3(-4, 0, 4), vec3(8, 0, 0), vec3(0, 8, 0), walls));
     // left wall
-    world.add(make_shared<quad>(vec3(-4, 0, -8), vec3(0, 10, 0), vec3(0, 0, 19), walls));
+    world.add(make_shared<quad>(vec3(-4, 0, -4), vec3(0, 8, 0), vec3(0, 0, 8), walls));
     // right wall
-    world.add(make_shared<quad>(vec3(12, 0, -8), vec3(0, 10, 0), vec3(0, 0, 19), walls));
+    world.add(make_shared<quad>(vec3(4, 0, -4), vec3(0, 8, 0), vec3(0, 0, 8), walls));
 
     cam.img_wd = 600;
     cam.anti_alias = 500;
-    cam.max_depth = 100;
+    cam.max_depth = 250;
 
-    cam.lk_from = vec3(11, 5, 10); // +: right  +: up   +: left? opposite light
+    cam.lk_from = vec3(3, 4, 3.75); // +: right  +: up   +: z opposite light
     // cam.lk_from = vec3(5, 5, -7);
-    cam.lk_at = vec3(0, 1.5, 0); // teapot centered
+    cam.lk_at = vec3(0.5, 1.5, 0); // teapot centered
     cam.vup = vec3(0, 1, 0);
-    cam.fov = 25;
+    cam.fov = 45;
 
     cam.bg = color(0.0, 0.0, 0.0);
 
@@ -603,79 +606,63 @@ void teapot(hittable_list &world, camera &cam) {
     cam.render(world);
 }
 
-// void testing(hittable_list &world, camera &cam) {
-
-//     obj_loader loader;
-//     auto grn = make_shared<lamber>(color(0.1, 0.7, 0.1));
-
-//     // if (loader.load_meshes("./objects/testing_obj.obj", "./objects/testing_obj.mtl")) {
-//     if (loader.load_meshes("./objects/cylinder.obj", "./objects/cylinder.mtl")) {
-//         std::clog << "\nloaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
-//     } else {
-//         std::cerr << "Failed to load mesh or material" << std::endl;
-//         return;
-//     }
-
-//     // if (loader.load("./objects/testing_obj.obj", grn)) {
-//     //     std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
-//     // } else {
-//     //     std::cerr << "failed to load mesh" << std::endl;
-//     //     return;
-//     // }
-
-//     for (const auto &tri : loader.get_triangles()) {
-//         world.add(tri);
-//     }
-
-//     auto gnd = make_shared<lamber>(color(0.1, 0.1, 1.0));
-//     world.add(make_shared<quad>(vec3(-16, 0, -16), vec3(32, 0, 0), vec3(0, 0, 32), gnd));
-
-//     cam.lk_from = vec3(12, 4, 0);
-//     cam.lk_at = vec3(0, 1.5, 0);
-
-//     cam.img_wd = 1000;
-//     cam.anti_alias = 10;
-//     cam.max_depth = 10;
-
-//     // cam.bg = color(0.5, 0.1, 0.1);
-    
-//     world = hittable_list(make_shared<bvh_node>(world));
-//     cam.render(world);
-// }
-
 void hdri(hittable_list &world, camera &cam) {
 
     auto alum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
+    auto hdri_tex = make_shared<image_hdr_tex>("./hdr_assets/esplanade.hdr");
+    auto hdri = make_shared<lamber>(hdri_tex);
     world.add(make_shared<sphere>(vec3(0, 1, 0), 2, alum));
 
     cam.img_wd = 1000;
     cam.aspect = 4.0 / 3.0;
-    cam.anti_alias = 250;
+    cam.anti_alias = 500;
     cam.max_depth = 10;
 
     cam.lk_from = vec3(-16, 1, -5);
     cam.lk_at = vec3(0, 1, 0);
 
-    cam.bg_tex = make_shared<image_hdr_tex>("./cinema.hdr");
-
+    cam.bg_tex = hdri_tex;
+    world = hittable_list(make_shared<bvh_node>(world));
     cam.render(world);
 }
 
 void testing(hittable_list &world, camera &cam) {
 
-    auto g1 = make_shared<dialectric>(1.5);
-    auto blue = make_shared<lamber>(color(0.1, 0.1, 0.9));
-    world.add(make_shared<sphere>(vec3(0, 1, 0), 2, blue));
+    obj_loader loader;
+    auto grn = make_shared<lamber>(color(0.1, 0.7, 0.1));
 
-    auto bg_skybox = make_shared<image_hdr_tex>("./cinema.hdr");
-    auto bg = make_shared<lamber>(bg_skybox);
+    // if (loader.load_meshes("./objects/testing_obj.obj", "./objects/testing_obj.mtl")) {
+    if (loader.load_meshes("./objects/cylinder.obj", "./objects/cylinder.mtl")) {
+        std::clog << "\nloaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
+    } else {
+        std::cerr << "Failed to load mesh or material" << std::endl;
+        return;
+    }
 
-    cam.bg_tex = bg_skybox;
-    cam.bg = color(0.1, 0.1, 0.9);
+    // if (loader.load("./objects/testing_obj.obj", grn)) {
+    //     std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
+    // } else {
+    //     std::cerr << "failed to load mesh" << std::endl;
+    //     return;
+    // }
 
-    cam.lk_from = vec3(50, 2, 0);
-    cam.lk_at = vec3(0, 1, 0);
+    for (const auto &tri : loader.get_triangles()) {
+        world.add(tri);
+    }
 
+    auto gnd = make_shared<lamber>(color(0.1, 0.1, 1.0));
+    world.add(make_shared<quad>(vec3(-16, 0, -16), vec3(32, 0, 0), vec3(0, 0, 32), gnd));
+
+    cam.lk_from = vec3(12, 4, 0);
+    cam.lk_at = vec3(0, 1.5, 0);
+
+    cam.img_wd = 1000;
+    cam.anti_alias = 10;
+    cam.max_depth = 10;
+
+    // cam.bg = color(0.5, 0.1, 0.1);
+    
+    world = hittable_list(make_shared<bvh_node>(world));
     cam.render(world);
 }
 
@@ -704,7 +691,7 @@ int main(int argc, char *argv[]) {
 
     cam.bg = color(0.70, 0.80, 1.00);
 
-    int select = 14;
+    int select = 13;
 
     if (argc > 1) {
         for (int i = 0; i < argc; i++) {

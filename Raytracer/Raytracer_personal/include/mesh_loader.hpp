@@ -157,7 +157,7 @@ class obj_loader {
             if (ni > 1.0) {
                 // Dialectric material (glass)
                 std::clog << "\nmaking glass material" << std::flush;
-                return std::make_shared<dialectric>(ni);
+                return std::make_shared<dielectric>(ni);
             }
 
             if (ks.e[0] > 0 || ks.e[1] > 0 || ks.e[2] > 0) {

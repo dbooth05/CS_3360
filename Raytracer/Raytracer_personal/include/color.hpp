@@ -25,23 +25,53 @@ inline double lin_to_gamma(double lin_comp) {
     return 0;
 }
 
-std::string write_color(color &col, int aa, bool is_hdr=false, double gamma=1.0) {
+color toneMap(const color &hdrcolor) {
+    double exposure = 1.0;
+    float white = 1.0;
+    color mapped = hdrcolor * exposure / (hdrcolor + exposure);
+    mapped /= white;
+    return mapped;
+}
+
+std::string write_color(color &col, int aa, bool is_hdr = false, double gamma = 1.0) {
+    color out = col;
+
+    interval intens(0.000, 0.999);
 
     if (is_hdr) {
-        return std::to_string(col.x()) + ' ' + std::to_string(col.y()) + ' ' + std::to_string(col.z()) + '\n';
+        // Apply tone mapping
+        out = toneMap(out);
+
+        // Clamp to [0, 1]
+        out = color(intens.clamp(out.x()), intens.clamp(out.y()), intens.clamp(out.z()));        
+
+        // Optional gamma correction
+        if (gamma != 1.0) {
+            out = color(
+                std::pow(out.x(), 1.0 / gamma),
+                std::pow(out.y(), 1.0 / gamma),
+                std::pow(out.z(), 1.0 / gamma)
+            );
+        }
+    } else {
+        // Apply linear to gamma conversion for non-HDR path
+        out = color(
+            lin_to_gamma(out.x()),
+            lin_to_gamma(out.y()),
+            lin_to_gamma(out.z())
+        );
     }
 
-    static const interval intens(0.000, 0.999);
-    auto r = lin_to_gamma(col.x());
-    auto g = lin_to_gamma(col.y());
-    auto b = lin_to_gamma(col.z());
+    out = color(intens.clamp(out.x()), intens.clamp(out.y()), intens.clamp(out.z()));        
 
-    auto r_bt = int(255.999 * intens.clamp(r));
-    auto g_bt = int(255.999 * intens.clamp(g));
-    auto b_bt = int(255.999 * intens.clamp(b));
+    // Scale to [0, 255] and convert to integers
+    int r = static_cast<int>(255.999 * out.x());
+    int g = static_cast<int>(255.999 * out.y());
+    int b = static_cast<int>(255.999 * out.z());
 
-    return std::to_string(r_bt) + ' ' + std::to_string(g_bt) + ' '  + std::to_string(b_bt) + '\n';
+    return std::to_string(r) + ' ' + std::to_string(g) + ' ' + std::to_string(b) + '\n';
 }
+
 
 class texture {
     public:

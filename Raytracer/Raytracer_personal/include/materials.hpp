@@ -101,9 +101,9 @@ class metal : public material {
         double fuzz;
 };
 
-class dialectric : public material {
+class dielectric : public material {
     public:
-        dialectric(double refrac_idx) : refrac_idx(refrac_idx) {};
+        dielectric(double refrac_idx) : refrac_idx(refrac_idx) {};
 
         bool scatter(const ray&r, const hit_record &rec, scatter_record &srec) const override {
             srec.atten = color(1.0, 1.0, 1.0);

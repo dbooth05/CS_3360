@@ -11,14 +11,6 @@
 #include "materials.hpp"
 #include "thread_pools.hpp"
 
-color toneMap(const color &hdrcolor) {
-    double exposure = 1.0;
-    float white = 10.0;
-    color mapped = hdrcolor * exposure / (hdrcolor + exposure);
-    mapped /= white;
-    return mapped;
-}
-
 class camera {
     public:
         int img_wd = default_width;
@@ -78,6 +70,7 @@ class camera {
                 }
 
                 color out_col = pix_col * anti_alias_scale;
+
                 row_output[j][i] = write_color(out_col, anti_alias, is_hdr, gamma);
             }
         }
@@ -122,8 +115,7 @@ class camera {
 
             init();
 
-            // ThreadPool pool(thread::hardware_concurrency());
-            ThreadPool pool(1);
+            ThreadPool pool(thread::hardware_concurrency());
 
             std::ofstream file("img.ppm");
             file << "P3\n" << img_wd << " " << img_ht << "\n255\n";
