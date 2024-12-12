@@ -24,6 +24,8 @@ enum class scenes {
     TRIANGLE,
     HDRI,
     TESTING,
+    SUBMISSION,
+    MATERIALS,
     NUM_SCENES
 };
 
@@ -66,8 +68,8 @@ void my_custom_scene(hittable_list &world, camera &cam) {
 
     cam.img_wd = 1900;
     cam.aspect = 16.0 / 9.0;
-    cam.anti_alias = 1000;
-    cam.max_depth = 250;
+    cam.anti_alias = 10;
+    cam.max_depth = 25;
     cam.lk_from = vec3(0, 0, 10);
     cam.lk_at = vec3(0, 0, 0);
 
@@ -426,7 +428,7 @@ void book1_final(hittable_list &world, camera &cam) {
     cam.img_wd = 1200;
     cam.img_wd = 600;
     cam.anti_alias = 500;
-    cam.max_depth = 100;
+    cam.max_depth = 250;
 
     cam.fov = 20;
     cam.lk_from = vec3(13, 2, 3);
@@ -436,7 +438,7 @@ void book1_final(hittable_list &world, camera &cam) {
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
 
-    // cam.is_hdr = true;
+    cam.is_hdr = true;
     cam.bg_tex = make_shared<image_hdr_tex>("./hdr_assets/cinema.hdr");
 
     world = hittable_list(make_shared<bvh_node>(world));
@@ -610,12 +612,26 @@ void hdri(hittable_list &world, camera &cam) {
 
     auto alum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
     auto hdri_tex = make_shared<image_hdr_tex>("./hdr_assets/esplanade.hdr");
-    auto hdri = make_shared<lamber>(hdri_tex);
-    world.add(make_shared<sphere>(vec3(0, 1, 0), 2, alum));
+    auto blue = make_shared<lamber>(color(0.1, 0.2, 0.8));
+    // auto hdri = make_shared<lamber>(hdri_tex);
+    // world.add(make_shared<sphere>(vec3(0, 1, 0), 2, alum));
+
+    obj_loader loader;
+
+    if (loader.load("./objects/head.obj", blue)) {
+        std::clog << "loaded " << loader.get_triangles().size() << " triangles\n" << std::flush;
+    } else {
+        std::cerr << "Failed to load: " << "box.obj" << std::endl;
+        return;
+    }
+
+    for (const auto &tri : loader.get_triangles()) {
+        world.add(tri);
+    }
 
     cam.img_wd = 1000;
     cam.aspect = 4.0 / 3.0;
-    cam.anti_alias = 500;
+    cam.anti_alias = 50;
     cam.max_depth = 10;
 
     cam.lk_from = vec3(-16, 1, -5);
@@ -666,6 +682,108 @@ void testing(hittable_list &world, camera &cam) {
     cam.render(world);
 }
 
+void submission(hittable_list &world, camera &cam) {
+
+    // standard colors
+    auto blue_col = color(0.15, 0.15, 0.88);
+    auto red_col  = color(0.88, 0.15, 0.15);
+    auto whte_col = color(1.00, 1.00, 1.00);
+
+    // Standard materials
+    auto alum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);    // aluminum material
+    auto blue = make_shared<lamber>(blue_col);                      // blue color for teapot
+    auto whte = make_shared<lamber>(whte_col);                      // white color
+    auto red  = make_shared<lamber>(red_col);                       // red color
+    auto chck = make_shared<checkers>(0.5, blue_col, red_col);      // checkers texture
+    auto grnd = make_shared<lamber>(chck);                          // ground material
+    auto glss = make_shared<dielectric>(1.5);                       // dielectric for window
+    auto gair = make_shared<dielectric>(1.0);                       // dielectric for air
+    
+    // hdri background
+    auto hdri_tex = make_shared<image_hdr_tex>("./hdr_assets/cinema.hdr");
+    cam.bg_tex = hdri_tex;
+    cam.bg = color(0.7, 0.8, 1.0);
+
+    // ground placement
+    world.add(make_shared<quad>(vec3(-6, 0, -6), vec3(12, 0, 0), vec3(0, 0, 12), grnd));
+
+    // scene objects
+    obj_loader obj;
+    if (obj.load("./objects/teapot_no_plane.obj", red)) {
+        clog << "Loaded " << obj.get_triangles().size() << " trigangles\n" << std::flush;
+        for (const auto &tri : obj.get_triangles()) { world.add(tri); }
+    } else {
+        clog << "Failed to load triangle mesh for object\n" << std::flush;
+    }
+
+    // shared_ptr<hittable> b = box(vec3(0, 0, 0), vec3(2, 2.5, 2), alum);
+    // b = make_shared<translate>(b, vec3(3.75, 0, -1));
+    // world.add(b);
+    world.add(make_shared<sphere>(vec3(4.5, 1.5, -2), 1.5, alum));
+
+    world.add(make_shared<sphere>(vec3(-3, 1.5, 3), 1.5, glss));
+    world.add(make_shared<sphere>(vec3(-3, 1.5, 3), 1.1, gair));
+    
+
+    // camera configuration
+    cam.lk_from = vec3(8, 4, 12);
+    cam.lk_at = vec3(0, 1, 0);
+
+    cam.img_wd = 2000;
+    cam.aspect = 4.0 / 3.0;
+    cam.anti_alias = 1000;
+    cam.max_depth = 1000;
+
+    cam.fov = 35;
+    // cam.focus_dist = 0.6;
+
+    world = hittable_list(make_shared<bvh_node>(world));
+    cam.render(world);
+}
+
+void materials(hittable_list &world, camera &cam) {
+
+    auto grnd = make_shared<lamber>(color(0.8, 0.8, 0.0));
+    auto cntr = make_shared<lamber>(color(0.1, 0.2, 0.5));
+    auto glss = make_shared<dielectric>(1.50);
+    auto gair = make_shared<dielectric>(1.00 / 1.50);
+    auto rght = make_shared<metal>(color(0.8, 0.6, 0.2), 0.2);
+
+    world.add(make_shared<sphere>(vec3( 0.0, -100.5, -1.0), 100.0, grnd));
+    world.add(make_shared<sphere>(vec3( 0.0,    0.0, -1.2),   0.5, cntr));
+    world.add(make_shared<sphere>(vec3(-1.0,    0.0, -1.0),   0.5, glss));
+    world.add(make_shared<sphere>(vec3(-1.0,    0.0, -1.0),   0.4, gair));
+    world.add(make_shared<sphere>(vec3( 1.0,    0.0, -1.0),   0.5, rght));
+
+    cam.aspect = 16.0 / 9.0;
+    cam.img_wd = 400;
+    cam.anti_alias = 100;
+    cam.max_depth = 50;
+
+    cam.focus_dist = 1.0;
+    cam.fov = 20;
+    cam.is_hdr = true;
+
+    cam.lk_from = vec3(0, 0.5, 2.5);
+    cam.lk_at = vec3(0, 0.15, 0);
+
+    world = hittable_list(make_shared<bvh_node>(world));
+    cam.render(world);
+}
+
+void shapes(hittable_list &world, camera &cam) {
+
+    auto gold = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+    auto red   = make_shared<lamber>(color(.65, .05, .05));
+    auto wht = make_shared<lamber>(color(.73, .73, .73));
+    auto grn = make_shared<lamber>(color(.12, .45, .15));
+    auto lht = make_shared<diffuse_light>(color(15, 15, 15));
+
+    // cornell box
+    // world.add(make_shared<)
+
+}
+
 int main(int argc, char *argv[]) {
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -691,7 +809,7 @@ int main(int argc, char *argv[]) {
 
     cam.bg = color(0.70, 0.80, 1.00);
 
-    int select = 13;
+    int select = 16;
 
     if (argc > 1) {
         for (int i = 0; i < argc; i++) {
@@ -727,6 +845,9 @@ int main(int argc, char *argv[]) {
         case 13: teapot(world, cam); break;
         case 14: hdri(world, cam); break;
         case 15: testing(world, cam); break;
+        case 16: submission(world, cam); break;
+        case 17: materials(world, cam); break;
+        case 18: shapes(world, cam); break;
         default: my_custom_scene(world, cam); break;
     }
 
