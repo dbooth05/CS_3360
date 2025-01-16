@@ -1,1 +1,0 @@
-make && ./main > image.ppm
